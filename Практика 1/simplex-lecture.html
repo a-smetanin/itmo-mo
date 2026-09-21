@@ -1297,20 +1297,20 @@
       phase: "Правила шага",
       toc: "Правила одного шага",
       title: "Что делаем на каждом шаге",
-      lead: "Один шаг на наших числах. Кто входит в базис, кто выходит, где разрешающая клетка.",
+      lead: "Один шаг на наших числах. Сначала столбец: кто входит. Потом строка: кто первым упрётся в ноль.",
       html: `
         <div class="seg" id="rules-seg">
           <button type="button" data-rule="col" class="on">1. Кто входит</button>
           <button type="button" data-rule="row">2. Кто выходит</button>
           <button type="button" data-rule="swap">3. Обмен</button>
-          <button type="button" data-rule="next">4. Разрешающая клетка</button>
         </div>
         <div data-rule-panel="col">
           <div class="card">
-            <h3>Сейчас все свободные равны нулю</h3>
+            <h3>Шаг 1. Выбираем столбец: кто входит в базис</h3>
+            <p class="note" style="margin-top:0">Это направление. Для минимума берём свободную с самым отрицательным c. Здесь −5, входит x<sub>1</sub>: печём торты, остальные свободные пока не трогаем.</p>
             <p class="eq">W<sub>a</sub> = 23 − 5x<sub>1</sub> + x<sub>2</sub> − 4x<sub>3</sub> + x<sub>4</sub> − x<sub>5</sub></p>
-            <p class="note">x<sub>1</sub>=x<sub>2</sub>=x<sub>3</sub>=x<sub>4</sub>=x<sub>5</sub>=0, поэтому W<sub>a</sub> = 23. Хотим меньше 23. Смотрим: если сделать один торт, x<sub>1</sub>=1, получим 23−5=18. Лучше. Если одно пирожное, x<sub>2</sub>=1, получим 23+1=24. Хуже.</p>
-            <p class="note">Правило простое. Перед переменной минус: её выгодно делать. Перед переменной плюс: не трогаем. Если минусов внизу уже нет, уменьшить W нельзя, счёт окончен.</p>
+            <p class="note">Сейчас все свободные ноль, поэтому W<sub>a</sub> = 23. Хотим меньше 23. Один торт: 23 − 5 = 18, лучше. Одно пирожное: 23 + 1 = 24, хуже.</p>
+            <p class="note">Перед переменной минус: её выгодно делать. Перед переменной плюс: не трогаем. Если минусов внизу уже нет, уменьшить W нельзя, счёт окончен.</p>
           </div>
           <div class="card" style="margin-top:16px">
             <h3>Нижняя строка</h3>
@@ -1325,44 +1325,94 @@
           </div>
         </div>
         <div data-rule-panel="row" hidden>
+          <div class="card" style="margin-bottom:16px">
+            <h3>Шаг 2. Выбираем строку: кто выходит из базиса</h3>
+            <p class="note" style="margin-top:0">Это уже другое правило. Не «кто меньше внизу», а кто первым упрётся в ноль, пока мы крутим выбранное направление.</p>
+            <p class="note">Базисные x<sub>6</sub>, x<sub>7</sub>, x<sub>8</sub> должны остаться ≥ 0. Остальные свободные держим нулями, двигаем только x<sub>1</sub>. Тогда из системы:</p>
+            <p class="eq">x<sub>6</sub> = 12 − 3x<sub>1</sub>, &nbsp; x<sub>7</sub> = 5 − x<sub>1</sub>, &nbsp; x<sub>8</sub> = 6 − x<sub>1</sub></p>
+            <p class="note">Потолок строки: сколько x<sub>1</sub> можно, пока эта базисная ещё неотрицательна. 12/3 = 4, 5/1 = 5, 6/1 = 6. Самый тесный 4, его даёт x<sub>6</sub>. Она выходит. В таблице то же: в столбце входящей только положительные a, считаем b/a, берём минимум. Нуль и минус строку не дают: такая базисная к нулю не падает.</p>
+          </div>
           <div class="grid-2">
-            <div class="card">
-              <h3>Как получаем x<sub>6</sub> = 12 − 3x<sub>1</sub></h3>
-              <p class="note" style="margin-top:0">x<sub>1</sub> входит. Остальные свободные не трогаем, они по-прежнему 0.</p>
-              <p class="eq" style="font-size:16px">
-                <span class="hl">3x<sub>1</sub></span> + <span class="dim">2x<sub>3</sub> − x<sub>4</sub></span> + x<sub>6</sub> = 12<br>
-                <span class="dim">2x<sub>3</sub>=0, x<sub>4</sub>=0</span>
-              </p>
-              <p class="eq">3x<sub>1</sub> + x<sub>6</sub> = 12</p>
-              <p class="eq">x<sub>6</sub> = 12 − 3x<sub>1</sub></p>
-              <p class="note">x<sub>6</sub> нельзя сделать меньше 0:</p>
-              <p class="eq" style="font-size:16px">
-                12 − 3x<sub>1</sub> ≥ 0<br>
-                12 ≥ 3x<sub>1</sub><br>
-                x<sub>1</sub> ≤ 12/3 = 4
-              </p>
-              <p class="note">Вторая и третья строки так же: x<sub>1</sub> ≤ 5 и x<sub>1</sub> ≤ 6. Самый тесный потолок 4, при нём x<sub>6</sub>=0 и выходит.</p>
-              <div class="race">
-                <div class="race-row win"><span>x<sub>6</sub></span><span class="race-bar"><i style="width:40%"></i></span><span>до 4</span></div>
-                <div class="race-row"><span>x<sub>7</sub></span><span class="race-bar"><i style="width:50%"></i></span><span>до 5</span></div>
-                <div class="race-row"><span>x<sub>8</sub></span><span class="race-bar"><i style="width:60%"></i></span><span>до 6</span></div>
+            <div>
+              <div class="card" style="margin-bottom:12px">
+                <h3>Вся система и таблица 0</h3>
+                <p class="note" style="margin-top:0">Канон с искусственными. Столбец x<sub>1</sub> уже выбран: он входит.</p>
+                <p class="eq" style="font-size:16px">
+                  3x<sub>1</sub> + 2x<sub>3</sub> − x<sub>4</sub> + x<sub>6</sub> = 12<br>
+                  x<sub>1</sub> − x<sub>2</sub> + x<sub>3</sub> + x<sub>7</sub> = 5<br>
+                  x<sub>1</sub> + x<sub>3</sub> + x<sub>5</sub> + x<sub>8</sub> = 6
+                </p>
+                <div class="mini-wrap">
+                  <table class="sx tiny">
+                    <thead>
+                      <tr><th></th><th class="col-enter">x<sub>1</sub></th><th>x<sub>2</sub></th><th>x<sub>3</sub></th><th>x<sub>4</sub></th><th>x<sub>5</sub></th><th>b</th></tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td class="rowh row-leave">x<sub>6</sub></td>
+                        <td class="pivot">3</td><td class="row-leave">0</td><td class="row-leave">2</td>
+                        <td class="row-leave">−1</td><td class="row-leave">0</td><td class="row-leave">12</td>
+                      </tr>
+                      <tr>
+                        <td class="rowh">x<sub>7</sub></td>
+                        <td class="col-enter">1</td><td>−1</td><td>1</td><td>0</td><td>0</td><td>5</td>
+                      </tr>
+                      <tr>
+                        <td class="rowh">x<sub>8</sub></td>
+                        <td class="col-enter">1</td><td>0</td><td>1</td><td>0</td><td>1</td><td>6</td>
+                      </tr>
+                      <tr>
+                        <td class="rowh obj">c</td>
+                        <td class="col-enter obj">−5</td><td class="obj">1</td><td class="obj">−4</td>
+                        <td class="obj">1</td><td class="obj">−1</td><td class="obj">−23</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div class="legend">
+                  <span><i class="sw" style="background:#dbeaf0"></i>входит x<sub>1</sub></span>
+                  <span><i class="sw" style="background:#f6e6d4"></i>выходит x<sub>6</sub></span>
+                  <span><i class="sw" style="background:#e8c48a"></i>разрешающая 3</span>
+                </div>
+              </div>
+              <div class="card">
+                <h3>Как получаем x<sub>6</sub> = 12 − 3x<sub>1</sub></h3>
+                <p class="note" style="margin-top:0">x<sub>1</sub> входит. Остальные свободные не трогаем, они по-прежнему 0.</p>
+                <p class="eq" style="font-size:16px">
+                  <span class="hl">3x<sub>1</sub></span> + <span class="dim">2x<sub>3</sub> − x<sub>4</sub></span> + x<sub>6</sub> = 12<br>
+                  <span class="dim">2x<sub>3</sub>=0, x<sub>4</sub>=0</span>
+                </p>
+                <p class="eq">3x<sub>1</sub> + x<sub>6</sub> = 12</p>
+                <p class="eq">x<sub>6</sub> = 12 − 3x<sub>1</sub></p>
+                <p class="note">x<sub>6</sub> нельзя сделать меньше 0:</p>
+                <p class="eq" style="font-size:16px">
+                  12 − 3x<sub>1</sub> ≥ 0<br>
+                  12 ≥ 3x<sub>1</sub><br>
+                  x<sub>1</sub> ≤ 12/3 = 4
+                </p>
+                <p class="note">Вторая и третья строки так же: x<sub>1</sub> ≤ 5 и x<sub>1</sub> ≤ 6. Самый тесный потолок 4, при нём x<sub>6</sub>=0 и выходит. x<sub>7</sub> и x<sub>8</sub> в этот момент ещё живы: 1 и 2.</p>
+                <div class="race">
+                  <div class="race-row win"><span>x<sub>6</sub></span><span class="race-bar"><i style="width:40%"></i></span><span>до 4</span></div>
+                  <div class="race-row"><span>x<sub>7</sub></span><span class="race-bar"><i style="width:50%"></i></span><span>до 5</span></div>
+                  <div class="race-row"><span>x<sub>8</sub></span><span class="race-bar"><i style="width:60%"></i></span><span>до 6</span></div>
+                </div>
               </div>
             </div>
             <div class="card">
               <h3>Та же система</h3>
-              <p class="note" style="margin-top:0">Серое обнуляем. Цветом то, что остаётся в первой строке.</p>
+              <p class="note" style="margin-top:0">Серое обнуляем: свободные кроме x<sub>1</sub> на этом шаге не двигаем. Цветом коэффициент при входящей.</p>
               <div class="eq">
                 <span class="hl">3x<sub>1</sub></span> + <span class="dim">2x<sub>3</sub></span> <span class="dim">− x<sub>4</sub></span> + x<sub>6</sub> = 12<br>
                 <span class="hl">x<sub>1</sub></span> <span class="dim">− x<sub>2</sub></span> + <span class="dim">x<sub>3</sub></span> + x<sub>7</sub> = 5<br>
                 <span class="hl">x<sub>1</sub></span> + <span class="dim">x<sub>3</sub></span> + <span class="dim">x<sub>5</sub></span> + x<sub>8</sub> = 6
               </div>
-              <p class="note">После обнуления:</p>
+              <p class="note">После обнуления каждая базисная читается как «было b, минус сколько отъедает один торт»:</p>
               <p class="eq">
                 x<sub>6</sub> = 12 − 3x<sub>1</sub><br>
                 x<sub>7</sub> = 5 − x<sub>1</sub><br>
                 x<sub>8</sub> = 6 − x<sub>1</sub>
               </p>
-              <p class="note">Проверка: x<sub>1</sub>=0 → x<sub>6</sub>=12; x<sub>1</sub>=4 → x<sub>6</sub>=0. Дальше минус, так нельзя.</p>
+              <p class="note">Проверка на первой строке. x<sub>1</sub> = 0 → x<sub>6</sub> = 12: текущая вершина, как в столбце b. x<sub>1</sub> = 4 → x<sub>6</sub> = 0: дошли до стенки. x<sub>1</sub> = 5 дало бы x<sub>6</sub> = −3, так нельзя. Поэтому 4 это граница допустимости, не «красивое число».</p>
             </div>
           </div>
         </div>
@@ -1383,59 +1433,6 @@
             </div>
           </div>
           <p class="note" style="margin-top:14px">Поменялись ролями только две переменные. Остальные базисные на месте. Это переход в соседнюю вершину.</p>
-        </div>
-        <div data-rule-panel="next" hidden>
-          <div class="grid-2">
-            <div class="card">
-              <h3>Откуда клетка 3</h3>
-              <p class="note" style="margin-top:0">Это коэффициент при входящей x<sub>1</sub> в строке выходящей x<sub>6</sub>. Тот же 3, что в равенстве.</p>
-              <p class="eq"><span class="hl">3x<sub>1</sub></span> + 2x<sub>3</sub> − x<sub>4</sub> + x<sub>6</sub> = 12</p>
-              <p class="note">В таблице: столбец x<sub>1</sub> и строка x<sub>6</sub> пересекаются. Эту клетку называют разрешающий элемент. Иногда пивот. Просто число 3.</p>
-              <div class="mini-wrap">
-                <table class="sx tiny">
-                  <thead>
-                    <tr><th></th><th class="col-enter">x<sub>1</sub></th><th>x<sub>2</sub></th><th>x<sub>3</sub></th><th>x<sub>4</sub></th><th>x<sub>5</sub></th><th>b</th></tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td class="rowh row-leave">x<sub>6</sub></td>
-                      <td class="pivot">3</td><td class="row-leave">0</td><td class="row-leave">2</td>
-                      <td class="row-leave">−1</td><td class="row-leave">0</td><td class="row-leave">12</td>
-                    </tr>
-                    <tr>
-                      <td class="rowh">x<sub>7</sub></td>
-                      <td class="col-enter">1</td><td>−1</td><td>1</td><td>0</td><td>0</td><td>5</td>
-                    </tr>
-                    <tr>
-                      <td class="rowh">x<sub>8</sub></td>
-                      <td class="col-enter">1</td><td>0</td><td>1</td><td>0</td><td>1</td><td>6</td>
-                    </tr>
-                    <tr>
-                      <td class="rowh obj">c</td>
-                      <td class="col-enter obj">−5</td><td class="obj">1</td><td class="obj">−4</td>
-                      <td class="obj">1</td><td class="obj">−1</td><td class="obj">−23</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-              <div class="legend">
-                <span><i class="sw" style="background:#dbeaf0"></i>входит x<sub>1</sub></span>
-                <span><i class="sw" style="background:#f6e6d4"></i>выходит x<sub>6</sub></span>
-                <span><i class="sw" style="background:#e8c48a"></i>разрешающая 3</span>
-              </div>
-            </div>
-            <div class="card">
-              <h3>Зачем эта тройка</h3>
-              <p class="note" style="margin-top:0">Новую таблицу собирают вокруг неё. Сама 3 станет 1/3. Строку x<sub>6</sub> делят на 3. Столбец x<sub>1</sub> делят на 3 и ставят минус.</p>
-              <p class="note">Чужая клетка: строка x<sub>8</sub>, столбец x<sub>4</sub>, сейчас 0. Берём двух соседей на выделенных линиях.</p>
-              <div class="rect">
-                <b class="p">3</b><b class="n">−1</b><span>строка x<sub>6</sub></span>
-                <b class="t">1</b><b class="q">0</b><span>строка x<sub>8</sub></span>
-              </div>
-              <p class="eq">новое = 0 − (−1)·1 / 3 = 1/3</p>
-              <p class="note">Старое, минус произведение соседей, делить на 3. Остальные формулы на следующем слайде. Контекст тот же: клетка 3 из первой строки системы.</p>
-            </div>
-          </div>
         </div>
       `,
       onEnter: bindRulesDemo
@@ -1647,9 +1644,27 @@
       phase: "Основная · шаг 1",
       toc: "Пересчёт · основная",
       title: "Старт основной: x<sub>2</sub> входит, x<sub>5</sub> выходит",
-      lead: "Ограничения из таблицы 3, низ из настоящей W. Столбцы не вычёркиваем. Цепочка: сначала кто входит и кто выходит, потом тот же пересчёт.",
+      lead: "Сначала пивот теми же двумя правилами, что на вспомогательной. Потом цепочка пересчёта. Столбцы не вычёркиваем.",
       wide: true,
       html: `
+        <div class="grid-2" style="margin-bottom:14px">
+          <div class="card">
+            <h3>Столбец. Кто входит</h3>
+            <p class="note" style="margin-top:0">Низ уже из настоящей W = 1 − 6x<sub>2</sub> + 3x<sub>4</sub>. Для минимума берём свободную с самым отрицательным c.</p>
+            <p class="eq">c<sub>2</sub> = −6, &nbsp; c<sub>4</sub> = 3</p>
+            <p class="note">Минус только у x<sub>2</sub>. Одно пирожное уменьшает свои деньги на 6. x<sub>4</sub> с плюсом не берём: лишний крем цель портит. Входит x<sub>2</sub>.</p>
+          </div>
+          <div class="card">
+            <h3>Строка. Кто выходит</h3>
+            <p class="note" style="margin-top:0">В столбце x<sub>2</sub> только положительные a, считаем b/a. Кто первым упрётся в ноль.</p>
+            <p class="eq">
+              x<sub>1</sub>: 2 / 2 = 1<br>
+              x<sub>3</sub>: −3 &lt; 0, строку не берём<br>
+              x<sub>5</sub>: 1 / 1 = 1
+            </p>
+            <p class="note">Ничья: и торты, и противень кончатся при x<sub>2</sub> = 1. В конспекте берут строку x<sub>5</sub>, разрешающая 1. После шага x<sub>1</sub> станет нулём в базисе: вырожденность, не ошибка.</p>
+          </div>
+        </div>
         <div class="rebuild-nav">
           <button class="nav-btn" type="button" id="rb-prev">←</button>
           <span class="cnt" id="rb-cnt">1 / 1</span>
