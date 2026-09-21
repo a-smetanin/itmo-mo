@@ -6,5 +6,7 @@ desktop.ini
 *.tmp
 _*.js
 _*.txt
+_*.ipynb
+_подход-практик.md
 __pycache__/
 .python-version

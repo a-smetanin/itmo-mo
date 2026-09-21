@@ -1,0 +1,2427 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Метод ломаных · разбор примера</title>
+  <style>
+    :root {
+      --bg: #f4efe6;
+      --paper: #fffdf8;
+      --ink: #1c1916;
+      --muted: #6b645b;
+      --line: #d9d0c3;
+      --accent: #1f4d63;
+      --accent-soft: #e4eef2;
+      --pivot: #b45309;
+      --pivot-soft: #f3e0c8;
+      --enter: #155e75;
+      --leave: #9a3412;
+      --ok: #3f6212;
+      --ok-soft: #e8efd8;
+      --bad: #9f1239;
+      --shadow: 0 0 0 1px var(--line);
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; }
+    body {
+      font-family: "Segoe UI", "Iosevka", "Cambria", Georgia, serif;
+      background: var(--bg);
+      color: var(--ink);
+      overflow: hidden;
+    }
+
+    .app {
+      display: grid;
+      grid-template-rows: 56px 1fr 44px;
+      height: 100%;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 0 18px;
+      border-bottom: 1px solid var(--line);
+      background: var(--paper);
+    }
+    header .brand { font-weight: 650; letter-spacing: 0.01em; }
+    header .brand span { color: var(--muted); font-weight: 500; }
+    .phase {
+      font-size: 13px;
+      color: var(--accent);
+      background: var(--accent-soft);
+      padding: 4px 10px;
+      border-radius: 999px;
+      white-space: nowrap;
+    }
+    .progress {
+      flex: 1;
+      height: 4px;
+      background: var(--line);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+    .progress > i {
+      display: block;
+      height: 100%;
+      background: var(--accent);
+      width: 0;
+    }
+    .counter { font-variant-numeric: tabular-nums; color: var(--muted); font-size: 13px; min-width: 52px; text-align: right; }
+
+    .nav-btn {
+      appearance: none;
+      border: 1px solid var(--line);
+      background: var(--paper);
+      color: var(--ink);
+      height: 32px;
+      min-width: 32px;
+      padding: 0 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      font: inherit;
+      font-size: 14px;
+    }
+    .nav-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .nav-btn:disabled { opacity: 0.35; cursor: default; }
+
+    .stage {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      min-height: 0;
+    }
+    .stage.wide-slide { grid-template-columns: 200px 1fr; }
+
+    .toc {
+      border-right: 1px solid var(--line);
+      padding: 14px 10px;
+      overflow: auto;
+      background: #f7f3eb;
+    }
+    .toc h2 {
+      margin: 0 8px 10px;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      font-weight: 650;
+    }
+    .toc button {
+      display: block;
+      width: 100%;
+      text-align: left;
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      font: inherit;
+      font-size: 13px;
+      padding: 7px 8px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .toc button.active {
+      background: var(--paper);
+      color: var(--ink);
+      box-shadow: var(--shadow);
+    }
+    .toc button .n {
+      display: inline-block;
+      width: 18px;
+      color: var(--muted);
+      font-variant-numeric: tabular-nums;
+    }
+
+    main { overflow: auto; padding: 28px 36px 40px; }
+    .slide { max-width: 1140px; }
+    .slide.wide { max-width: 860px; }
+    .slide.wide h1 { font-size: 22px; }
+    .slide.wide .lead { margin-bottom: 12px; font-size: 15px; }
+    .slide.wide.geom-slide,
+    .slide.wide.hw-slide,
+    .slide.wide.chain-slide { max-width: 1180px; }
+    .slide.wide.geom-slide h1,
+    .slide.wide.hw-slide h1,
+    .slide.wide.chain-slide h1 { font-size: 24px; }
+
+    .slide h1 {
+      font-size: 28px;
+      font-weight: 650;
+      margin: 0 0 8px;
+      letter-spacing: -0.02em;
+    }
+    .lead { color: var(--muted); font-size: 16px; margin: 0 0 22px; line-height: 1.45; }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+    .card {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 16px 18px;
+    }
+    .card h3 {
+      margin: 0 0 10px;
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+    }
+    .eq {
+      font-family: "Cambria Math", "Times New Roman", serif;
+      font-size: 18px;
+      line-height: 1.7;
+    }
+    .note { font-size: 14px; color: var(--muted); line-height: 1.5; margin-top: 10px; }
+    .tag {
+      display: inline-block;
+      font-size: 12px;
+      padding: 2px 8px;
+      border-radius: 99px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      margin-right: 6px;
+    }
+    .tag.warn { background: var(--pivot-soft); color: var(--pivot); }
+    .tag.ok { background: var(--ok-soft); color: var(--ok); }
+
+    .steps { margin: 0; padding: 0; list-style: none; }
+    .steps li {
+      display: grid;
+      grid-template-columns: 28px 1fr;
+      gap: 10px;
+      margin-bottom: 12px;
+      font-size: 15px;
+      line-height: 1.45;
+    }
+    .steps .num {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: #fff;
+      display: grid; place-items: center;
+      font-size: 13px; font-weight: 650;
+    }
+
+    table.sx {
+      border-collapse: collapse;
+      font-variant-numeric: tabular-nums;
+      font-size: 15px;
+      background: var(--paper);
+    }
+    table.sx th, table.sx td {
+      border: 1px solid var(--line);
+      padding: 6px 9px;
+      text-align: center;
+      min-width: 52px;
+    }
+    table.sx th { background: #f3eee4; font-weight: 650; font-size: 13px; }
+    table.sx td.rowh { background: #f3eee4; font-weight: 650; text-align: left; }
+    table.sx td.pick { background: #e8c48a; font-weight: 750; color: var(--leave); }
+    table.sx td.up { background: var(--accent-soft); }
+    table.sx td.best { background: var(--ok-soft); font-weight: 650; }
+    table.sx.tiny th, table.sx.tiny td { padding: 4px 7px; font-size: 13px; min-width: 40px; }
+
+    .legend { display: flex; gap: 14px; flex-wrap: wrap; margin: 10px 0 0; font-size: 13px; color: var(--muted); }
+    .sw { display: inline-block; width: 12px; height: 12px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; }
+
+    footer {
+      border-top: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      background: var(--paper);
+      color: var(--muted);
+      font-size: 12px;
+    }
+    kbd {
+      font-family: inherit;
+      font-size: 11px;
+      border: 1px solid var(--line);
+      background: #f7f3eb;
+      padding: 1px 5px;
+      border-radius: 4px;
+    }
+
+    .problem {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 22px 26px 20px;
+    }
+    .problem .given { font-size: 16px; line-height: 1.55; margin: 0 0 16px; }
+    .problem .label {
+      display: block;
+      font-size: 12px;
+      font-weight: 650;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin: 0 0 6px;
+    }
+
+    .callout {
+      border-left: 3px solid var(--accent);
+      padding: 10px 14px;
+      background: var(--accent-soft);
+      border-radius: 0 8px 8px 0;
+      margin: 16px 0;
+      font-size: 15px;
+      line-height: 1.45;
+    }
+    .callout.warn { border-color: var(--pivot); background: var(--pivot-soft); }
+    .callout.ok { border-color: var(--ok); background: var(--ok-soft); }
+
+    .links { list-style: none; margin: 0; padding: 0; }
+    .links li { margin: 0 0 8px; font-size: 14px; line-height: 1.4; }
+    .links a { color: var(--accent); text-decoration: none; border-bottom: 1px solid var(--line); }
+    .links a:hover { border-bottom-color: var(--accent); }
+
+    .seg { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 14px; }
+    .seg button {
+      appearance: none;
+      border: 1px solid var(--line);
+      background: var(--paper);
+      color: var(--ink);
+      font: inherit;
+      font-size: 13px;
+      padding: 6px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .seg button.on {
+      background: var(--accent-soft);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 0; }
+    .chip {
+      border: 1px solid var(--line);
+      background: var(--paper);
+      padding: 8px 10px;
+      border-radius: 8px;
+      text-align: center;
+      min-width: 84px;
+    }
+    .chip .k { display: block; font-size: 12px; color: var(--muted); }
+    .chip .v { display: block; font-size: 20px; font-weight: 650; margin-top: 2px; }
+    .chip.pick { background: var(--pivot-soft); border-color: var(--pivot); }
+    .chip.ok { background: var(--ok-soft); border-color: var(--ok); }
+    .chip.skip { opacity: 0.55; }
+
+    .fig {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .fig svg { display: block; width: 100%; height: auto; }
+
+    .geom-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(260px, 320px);
+      gap: 18px;
+      align-items: start;
+    }
+    .geom-story { display: flex; flex-direction: column; gap: 10px; }
+    .geom-story .card { padding: 14px 16px; }
+    .geom-story .card h3 { margin-bottom: 8px; }
+    .geom-story .card p { margin: 0 0 8px; }
+    .geom-story .card p:last-child { margin-bottom: 0; }
+    .geom-story .card.start { border-left: 3px solid #1c1916; }
+    .geom-story .card.best { border-left: 3px solid var(--accent); background: var(--accent-soft); }
+    .geom-story .card.local { border-left: 3px solid var(--pivot); }
+    .geom-legend {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      padding: 2px 14px 12px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .geom-legend .sw { border: 1px solid rgba(28,25,22,0.12); }
+
+    .idea-pills { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 12px; }
+    .idea-pills button {
+      appearance: none;
+      border: 1px solid var(--line);
+      background: var(--paper);
+      color: var(--ink);
+      border-radius: 99px;
+      padding: 5px 11px;
+      font: inherit;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .idea-pills button.on {
+      background: var(--accent-soft);
+      border-color: var(--accent);
+      color: var(--accent);
+      font-weight: 650;
+    }
+    .idea-dock {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(280px, 340px);
+      gap: 16px;
+      align-items: start;
+      margin-top: 2px;
+    }
+    .idea-dock .card p { margin: 0 0 8px; }
+    .idea-dock .card p:last-child { margin-bottom: 0; }
+    .idea-dock table.sx { width: 100%; }
+    .idea-dock table.sx td, .idea-dock table.sx th { text-align: left; }
+    .idea-hit { cursor: pointer; }
+    .idea-dock table.sx button {
+      appearance: none;
+      font: inherit;
+      font-size: 12px;
+      padding: 2px 8px;
+      border-radius: 99px;
+      border: 1px solid var(--line);
+      background: var(--paper);
+      cursor: pointer;
+    }
+    .idea-dock table.sx tr.pick button {
+      background: var(--pivot-soft);
+      border-color: var(--pivot);
+    }
+    .slide.work-slide .idea-pills button { font-size: 12px; padding: 4px 9px; }
+    .slide.work-slide .idea-dock {
+      grid-template-columns: minmax(0, 1.15fr) minmax(300px, 370px);
+    }
+    .slide.work-slide #work-side {
+      max-height: 440px;
+      overflow: auto;
+    }
+    .work-sheet {
+      background: #f7f3eb;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 8px 10px;
+      margin: 8px 0 0;
+    }
+    .work-sheet .eq { font-size: 15px; margin: 6px 0; }
+    .work-sheet p { margin: 0 0 6px; }
+    .work-sheet p:last-child { margin-bottom: 0; }
+    .work-sheet .k {
+      font-size: 12px;
+      font-weight: 650;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .work-mini { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 0; }
+    .work-mini span {
+      font-size: 12px;
+      padding: 2px 7px;
+      border-radius: 99px;
+      border: 1px solid var(--line);
+      background: #f7f3eb;
+      color: var(--muted);
+    }
+    .work-mini span.on { background: var(--ok-soft); border-color: var(--ok); color: var(--ok); font-weight: 650; }
+    .work-mini span.last { background: var(--pivot-soft); border-color: var(--pivot); color: var(--pivot); }
+
+    .hw-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 16px;
+      align-items: start;
+    }
+    .hw-layout .card p { margin: 0 0 8px; }
+    .hw-layout .card p:last-child { margin-bottom: 0; }
+    .hw-layout .card + .card { margin-top: 10px; }
+    .ban { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 0; }
+    .ban span {
+      font-size: 12px;
+      padding: 3px 8px;
+      border-radius: 99px;
+      background: #f8e8ea;
+      color: var(--bad);
+      border: 1px solid #e8c5cc;
+    }
+    .codebox {
+      font-family: Consolas, "Segoe UI Mono", monospace;
+      font-size: 13px;
+      line-height: 1.55;
+      background: #f7f3eb;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px 12px;
+      margin: 8px 0 0;
+    }
+
+    .why { font-size: 15px; line-height: 1.5; }
+    .why p { margin: 8px 0; }
+    .why .eq { font-size: 17px; }
+    .why .k { font-weight: 650; }
+    .why .old2 {
+      font-family: "Cambria Math", "Times New Roman", serif;
+      font-size: 17px;
+      line-height: 1.7;
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 8px 12px;
+      margin: 8px 0;
+    }
+    .mk { padding: 0 3px; border-radius: 3px; font-weight: 650; }
+    .mk.p { background: #e8c48a; }
+    .mk.n { background: #f6e6d4; }
+    .mk.t { background: #dbeaf0; }
+    .mk.q { background: #e8efd8; }
+
+    .pocket {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      margin: 10px 0 0;
+    }
+    .pocket summary {
+      cursor: pointer;
+      padding: 8px 12px;
+      list-style: none;
+      display: block;
+    }
+    .pocket summary::-webkit-details-marker { display: none; }
+    .pocket-title::before { content: "▸ "; color: var(--accent); }
+    .pocket[open] .pocket-title::before { content: "▾ "; }
+    .pocket-title { font-weight: 650; }
+    .pocket-body { padding: 4px 12px 12px; border-top: 1px solid var(--line); }
+
+    .rb-chain { display: flex; flex-direction: column; align-items: stretch; }
+    .rb-block {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 12px 14px;
+    }
+    .rb-block.calc { border-left: 4px solid var(--accent); background: #f7f3eb; }
+    .rb-block.fresh { box-shadow: 0 0 0 2px var(--accent); }
+    .rb-block h3 { margin: 0 0 8px; font-size: 16px; font-weight: 650; }
+    .rb-down {
+      text-align: center;
+      color: var(--accent);
+      font-size: 20px;
+      line-height: 1;
+      padding: 6px 0;
+      font-weight: 650;
+    }
+    .tbl-cap {
+      font-size: 12px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-weight: 650;
+      margin: 0 0 8px;
+    }
+    .rebuild-nav {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      position: sticky;
+      top: 0;
+      z-index: 3;
+      background: var(--bg);
+      padding: 4px 0 10px;
+      margin: 0 0 8px;
+    }
+    .rebuild-nav .cnt { font-variant-numeric: tabular-nums; color: var(--muted); font-size: 13px; }
+    .rebuild-nav .hint { font-size: 13px; color: var(--muted); }
+    .state-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.25fr) minmax(260px, 340px);
+      gap: 14px;
+      align-items: start;
+    }
+
+    .frac { display: inline-flex; flex-direction: column; align-items: center; line-height: 1.05; vertical-align: middle; font-size: 0.85em; }
+    .frac span { padding: 0 3px; }
+    .frac .num { border-bottom: 1px solid currentColor; }
+    .bigstat { font-size: 26px; font-weight: 650; margin: 8px 0 4px; }
+    .muted { color: var(--muted); }
+
+    .lip-ex {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 16px;
+    }
+    .lip-ex .card p:last-child { margin-bottom: 0; }
+    .card h3.ok-cap { color: var(--ok); }
+    .card h3.bad-cap { color: var(--bad); }
+    .card a, .note a { color: var(--accent); text-decoration: none; border-bottom: 1px solid var(--line); }
+
+    .range-row {
+      display: grid;
+      grid-template-columns: 90px 1fr 64px;
+      gap: 10px;
+      align-items: center;
+      margin: 8px 0;
+    }
+    .range-row input[type="range"] { width: 100%; }
+    .live-eq { font-size: 20px; margin: 8px 0 0; font-family: "Cambria Math", "Times New Roman", serif; }
+
+    .flow {
+      display: grid;
+      grid-template-columns: 1fr 28px 1fr 28px 1fr 28px 1fr;
+      gap: 8px;
+      align-items: stretch;
+      margin: 4px 0 8px;
+    }
+    .flow .box {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+    .flow .box b { display: block; margin-bottom: 4px; }
+    .flow .arr {
+      display: grid;
+      place-items: center;
+      color: var(--accent);
+      font-size: 22px;
+      font-weight: 650;
+    }
+
+    @media (max-width: 1100px) {
+      .stage { grid-template-columns: 180px 1fr; }
+      main { padding: 20px; }
+      .grid-2, .geom-layout, .hw-layout, .state-grid, .lip-ex { grid-template-columns: 1fr; }
+      .flow { grid-template-columns: 1fr; }
+      .flow .arr { transform: rotate(90deg); padding: 0; height: 20px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div class="brand">Метод ломаных <span>· практика</span></div>
+      <div class="phase" id="phase">Постановка</div>
+      <div class="progress"><i id="bar"></i></div>
+      <div class="counter" id="counter">1 / 1</div>
+      <button class="nav-btn" id="prev" type="button">←</button>
+      <button class="nav-btn" id="next" type="button">→</button>
+    </header>
+    <div class="stage">
+      <nav class="toc" id="toc"></nav>
+      <main id="main"></main>
+    </div>
+    <footer>
+      <div>Пример: W(x) = ½(x−2)² + sin(πx) на [0, 4], L = 6, ε = 1</div>
+      <div><kbd>←</kbd> <kbd>→</kbd> шаг · <kbd>F11</kbd> на проектор</div>
+    </footer>
+  </div>
+
+<script>
+(function () {
+  const L = 6;
+  const EPS = 1;
+  const A = 0;
+  const B = 4;
+
+  function W(x) {
+    return 0.5 * (x - 2) * (x - 2) + Math.sin(Math.PI * x);
+  }
+  function Wpair(x) {
+    if (Math.abs(x) < 1e-12) return 2;
+    if (Math.abs(x - 4) < 1e-12) return 2;
+    if (Math.abs(x - 2) < 1e-12) return 0;
+    return W(x);
+  }
+  function Wp(x) {
+    return (x - 2) + Math.PI * Math.cos(Math.PI * x);
+  }
+  function cross(uq, Wq, uv, Wv) {
+    const x = (Wq - Wv) / (2 * L) + (uq + uv) / 2;
+    const p = Wq - L * (x - uq);
+    return { x: x, p: p };
+  }
+  function fmt(v, n) {
+    n = n == null ? 3 : n;
+    const s = Number(v).toFixed(n);
+    return s.replace("-", "−");
+  }
+  function brokenPts(uppers) {
+    const pts = [];
+    for (let i = 0; i < uppers.length - 1; i++) {
+      const a = uppers[i], b = uppers[i + 1];
+      const c = cross(a[0], a[1], b[0], b[1]);
+      if (i === 0) pts.push([a[0], a[1]]);
+      pts.push([c.x, c.p], [b[0], b[1]]);
+    }
+    return pts;
+  }
+
+  function sampleFun(fn, x0, x1, n) {
+    const pts = [];
+    for (let i = 0; i <= n; i++) {
+      const x = x0 + (x1 - x0) * i / n;
+      pts.push([x, fn(x)]);
+    }
+    return pts;
+  }
+
+  function svgCurve(opt) {
+    opt = opt || {};
+    const w = opt.w || 720;
+    const h = opt.h || 280;
+    const padL = 44, padR = 14, padT = 16, padB = 28;
+    const x0 = opt.x0;
+    const x1 = opt.x1;
+    const fn = opt.fn;
+    const n = opt.n || 220;
+    const samples = opt.samples || (fn ? sampleFun(fn, x0, x1, n) : []);
+    let yMin = opt.yMin;
+    let yMax = opt.yMax;
+    if (yMin == null || yMax == null) {
+      const ys = samples.map(function (p) { return p[1]; });
+      yMin = Math.min.apply(null, ys);
+      yMax = Math.max.apply(null, ys);
+      const span = Math.max(0.8, yMax - yMin);
+      yMin -= span * 0.10;
+      yMax += span * 0.12;
+    }
+    function X(x) { return padL + (x - x0) / (x1 - x0) * (w - padL - padR); }
+    function Y(y) { return padT + (yMax - y) / (yMax - yMin) * (h - padT - padB); }
+    function pathOf(pts) {
+      return pts.map(function (p, i) {
+        return (i ? "L" : "M") + X(p[0]).toFixed(1) + " " + Y(p[1]).toFixed(1);
+      }).join(" ");
+    }
+    function ticksX() {
+      if (opt.xticks) return opt.xticks;
+      const out = [];
+      const step = opt.xstep || 1;
+      for (let t = Math.ceil(x0 / step) * step; t <= x1 + 1e-9; t += step) out.push(t);
+      return out;
+    }
+
+    let g = '<svg viewBox="0 0 ' + w + " " + h + '" role="img">';
+    g += '<rect width="' + w + '" height="' + h + '" fill="#fffdf8"/>';
+    g += '<g font-family="Segoe UI, Cambria, Georgia, serif">';
+    ticksX().forEach(function (t) {
+      g += '<line x1="' + X(t) + '" y1="' + Y(yMin) + '" x2="' + X(t) + '" y2="' + Y(yMax) + '" stroke="#efe8dc"/>';
+      g += '<text x="' + X(t) + '" y="' + (h - 8) + '" font-size="12" fill="#6b645b" text-anchor="middle">' + t + "</text>";
+    });
+    const yTicks = opt.yTicks || 4;
+    for (let i = 0; i <= yTicks; i++) {
+      const yv = yMin + (yMax - yMin) * i / yTicks;
+      g += '<line x1="' + X(x0) + '" y1="' + Y(yv) + '" x2="' + X(x1) + '" y2="' + Y(yv) + '" stroke="#efe8dc"/>';
+      g += '<text x="' + (padL - 8) + '" y="' + (Y(yv) + 4) + '" font-size="11" fill="#6b645b" text-anchor="end">' + fmt(yv, 1) + "</text>";
+    }
+    if (yMin < 0 && yMax > 0) {
+      g += '<line x1="' + X(x0) + '" y1="' + Y(0) + '" x2="' + X(x1) + '" y2="' + Y(0) + '" stroke="#d9d0c3"/>';
+    }
+
+    if (opt.cone) {
+      const u = opt.cone.u;
+      const ell = opt.cone.L;
+      const Wu = opt.cone.Wu != null ? opt.cone.Wu : fn(u);
+      const hi = [], lo = [];
+      for (let i = 0; i <= 80; i++) {
+        const x = x0 + (x1 - x0) * i / 80;
+        const d = ell * Math.abs(x - u);
+        hi.push([x, Wu + d]);
+        lo.push([x, Wu - d]);
+      }
+      const band = hi.concat(lo.slice().reverse());
+      g += '<path d="' + pathOf(band) + 'Z" fill="#e4eef2" fill-opacity="0.85" stroke="none"/>';
+      g += '<path d="' + pathOf(hi) + '" fill="none" stroke="#1f4d63" stroke-width="1.4" stroke-dasharray="5 4"/>';
+      g += '<path d="' + pathOf(lo) + '" fill="none" stroke="#1f4d63" stroke-width="1.4" stroke-dasharray="5 4"/>';
+      g += '<circle cx="' + X(u) + '" cy="' + Y(Wu) + '" r="5" fill="#1f4d63"/>';
+    }
+
+    (opt.vlines || []).forEach(function (v) {
+      g += '<line x1="' + X(v.x) + '" y1="' + Y(v.y1) + '" x2="' + X(v.x) + '" y2="' + Y(v.y2) + '" stroke="' + (v.stroke || "#9f1239") + '" stroke-width="1.6" stroke-dasharray="4 3"/>';
+    });
+    if (fn && !opt.noFn) {
+      g += '<path d="' + pathOf(samples) + '" fill="none" stroke="' + (opt.stroke || "#1c1916") + '" stroke-width="2.2"/>';
+    }
+    if (opt.broken) {
+      opt.broken.forEach(function (seg) {
+        const pts = seg.pts || seg;
+        const stroke = seg.stroke || "#b45309";
+        g += '<path d="' + pathOf(pts) + '" fill="none" stroke="' + stroke + '" stroke-width="2.2"/>';
+      });
+    }
+
+    (opt.points || []).forEach(function (p) {
+      g += '<circle cx="' + X(p.x) + '" cy="' + Y(p.y) + '" r="' + (p.r || 6) + '" fill="' + (p.fill || "#1c1916") + '"'
+        + (p.stroke ? ' stroke="' + p.stroke + '" stroke-width="' + (p.sw || 2) + '"' : "")
+        + "/>";
+    });
+    (opt.marks || []).forEach(function (m) {
+      g += '<text x="' + (X(m.x) + (m.dx || 8)) + '" y="' + (Y(m.y) + (m.dy || -8)) + '" font-size="13" font-weight="650" fill="' + (m.fill || "#1c1916") + '">' + m.text + "</text>";
+    });
+    g += "</g></svg>";
+    return g;
+  }
+
+  const slides = [
+    {
+      id: "plan",
+      phase: "План практики",
+      toc: "План на пару",
+      title: "Метод ломаных ищет глобальный экстремум",
+      lead: "На отрезке у функции несколько ям и холмов. Нужна самая глубокая точка, не та, в которую скатились первыми.",
+      wide: true,
+      html: `
+        <div class="geom-layout">
+          <div>
+            <div class="fig" id="plan-fig"></div>
+            <div class="geom-legend">
+              <span><i class="sw" style="background:#3f6212"></i>глобальный минимум</span>
+              <span><i class="sw" style="background:#1f4d63"></i>глобальный максимум</span>
+              <span><i class="sw" style="background:#b45309"></i>локальные, не те</span>
+            </div>
+          </div>
+          <div class="geom-story">
+            <div class="card">
+              <h3>Какая задача</h3>
+              <p>Найти экстремумы функции на отрезке. Сегодня ищем глобальный минимум: самую нижнюю точку на всей картинке слева.</p>
+            </div>
+            <div class="card">
+              <h3>Почему не обычный спуск</h3>
+              <p>Если начать справа и идти только вниз по склону, скатитесь в мелкую яму и остановитесь. Слева есть яма глубже, но обычный спуск про неё не знает.</p>
+            </div>
+          </div>
+        </div>
+        <div class="card" style="margin-top:16px">
+          <h3>Как пройдёт пара</h3>
+          <ol class="steps" style="margin-top:8px">
+            <li><span class="num">1</span><div>Разберём задачу на одной функции и посмотрим, когда метод вообще можно применять</div></li>
+            <li><span class="num">2</span><div>Как устроена ломаная и как она шагает к минимуму</div></li>
+            <li><span class="num">3</span><div>Посчитаем пример до ответа, где метод ломается, что сдавать</div></li>
+          </ol>
+          <p class="note">Конспект: <a href="Метод%20Пиявского.pdf">Метод Пиявского.pdf</a>. Задание: <a href="Тема №2.pdf">Тема №2.pdf</a>.</p>
+        </div>
+      `,
+      onEnter: drawPlan
+    },
+    {
+      id: "life",
+      phase: "Постановка",
+      toc: "Постановка задачи",
+      title: "Постановка задачи",
+      lead: "Ищем глобальный минимум этой функции на отрезке от 0 до 4. Потом посмотрим, что значит константа Липшица.",
+      wide: true,
+      html: `
+        <div class="seg" id="life-seg">
+          <button type="button" data-life="task" class="on">1. Наша функция</button>
+          <button type="button" data-life="lip">2. Константа Липшица</button>
+        </div>
+        <div data-life-panel="task">
+          <div class="geom-layout">
+            <div>
+              <div class="fig" id="life-fig"></div>
+              <div class="geom-legend">
+                <span><i class="sw" style="background:#3f6212"></i>глобальный минимум</span>
+                <span><i class="sw" style="background:#b45309"></i>локальный минимум</span>
+              </div>
+            </div>
+            <div class="geom-story">
+              <div class="card">
+                <h3>Дано</h3>
+                <p class="eq">W(x) = ½(x − 2)² + sin(πx)</p>
+                <p>Отрезок [0, 4]. Ищем минимум.</p>
+                <p class="note" style="margin-top:8px">На концах одно и то же: W(0) = W(4) = 2. Обе ямы ниже.</p>
+              </div>
+              <div class="card">
+                <h3>Что видно на графике</h3>
+                <p>Две ямы. Левая глубже: x ≈ 1.55, W ≈ −0.89. Это глобальный минимум.</p>
+                <p style="margin-top:8px">Правая мельче: x ≈ 3.36, W ≈ 0.02. Обычный спуск может остаться там.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div data-life-panel="lip" hidden>
+          <div class="geom-layout">
+            <div>
+              <div class="fig" id="life-lip-fig"></div>
+              <div class="geom-legend">
+                <span><i class="sw" style="background:#e4eef2;border:1px solid #1f4d63"></i>конус с наклоном ±L</span>
+                <span><i class="sw" style="background:#1c1916"></i>график W</span>
+              </div>
+            </div>
+            <div class="geom-story">
+              <div class="card">
+                <h3>Что такое липшицева функция</h3>
+                <p>Функция липшицева на отрезке, если существует число L &gt; 0: график нигде не круче прямой с наклоном L. Это L называют константой Липшица.</p>
+                <p style="margin-top:8px">Тогда из любой точки весь график лежит в конусе со склонами +L и −L. Наша W такая, L можно подобрать. Не липшицева, если такого числа нет: скачок или вертикальная касательная.</p>
+              </div>
+              <div class="card">
+                <h3>Покрутите на нашей W</h3>
+                <div class="range-row">
+                  <span>точка</span>
+                  <input type="range" id="life-u" min="0" max="4" step="0.01" value="4" />
+                  <span id="life-uval">4.00</span>
+                </div>
+                <div class="range-row">
+                  <span>L</span>
+                  <input type="range" id="life-L" min="1" max="8" step="0.1" value="6" />
+                  <span id="life-Lval">6.0</span>
+                </div>
+                <div class="seg" style="margin-top:10px">
+                  <button type="button" data-life-pair="ok">L = 6, хватает</button>
+                  <button type="button" data-life-pair="steep">L = 3, мало</button>
+                </div>
+                <p class="eq" id="life-cmp" style="margin-top:12px"></p>
+                <p class="note" id="life-msg"></p>
+              </div>
+              <div class="card">
+                <h3>Та же мысль формулой</h3>
+                <p class="eq">|W(u) − W(v)| ≤ L |u − v|</p>
+                <p>Сдвинулись по x на расстояние d. Функция изменилась не больше чем на L·d. Если есть производная, L не меньше самого большого |W′|. У нас max |W′| ≈ 5.14, берём L = 6.</p>
+              </div>
+            </div>
+          </div>
+          <div class="card" style="margin-top:16px">
+            <h3>Пример не липшицевой функции</h3>
+            <p>Та же картинка: из точки рисуем прямые с наклоном ±L. Ступенька слева 0, справа 1. Смотрите, входит ли график в конус.</p>
+            <div class="geom-layout" style="margin-top:12px">
+              <div>
+                <div class="fig" id="life-nolip-fig"></div>
+                <div class="geom-legend">
+                  <span><i class="sw" style="background:#e4eef2;border:1px solid #1f4d63"></i>конус ±L</span>
+                  <span><i class="sw" style="background:#1c1916"></i>ступенька</span>
+                  <span><i class="sw" style="background:#9f1239"></i>вылез из конуса</span>
+                </div>
+              </div>
+              <div class="geom-story">
+                <div class="card">
+                  <h3>Покрутите на ступеньке</h3>
+                  <div class="range-row">
+                    <span>точка</span>
+                    <input type="range" id="nolip-d" min="0" max="2" step="0.01" value="0.88" />
+                    <span id="nolip-dval">0.88</span>
+                  </div>
+                  <div class="range-row">
+                    <span>L</span>
+                    <input type="range" id="nolip-L" min="1" max="80" step="0.5" value="6" />
+                    <span id="nolip-Lval">6.0</span>
+                  </div>
+                  <div class="seg" style="margin-top:10px">
+                    <button type="button" data-nolip-pair="far">Далеко</button>
+                    <button type="button" data-nolip-pair="near">У скачка</button>
+                  </div>
+                  <p class="eq" id="nolip-cmp" style="margin-top:12px"></p>
+                  <p class="note" id="nolip-msg"></p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `,
+      onEnter: bindLife
+    },
+    {
+      id: "idea",
+      phase: "Правило шага",
+      toc: "Идея ломаной",
+      title: "Как шагает метод ломаных",
+      lead: "Яма посередине. Каждый шаг: смотрим углы ломаной, считаем W в одном самом нижнем, перерисовываем.",
+      wide: true,
+      html: `
+        <div class="rebuild-nav">
+          <button class="nav-btn" id="rb-prev" type="button">←</button>
+          <button class="nav-btn" id="rb-next" type="button">→</button>
+          <span class="cnt" id="idea-cnt">1 / 8</span>
+          <span class="hint">стрелки сначала листают шаги схемы</span>
+        </div>
+        <div class="idea-pills" id="idea-pills"></div>
+        <div class="fig" id="idea-fig"></div>
+        <div class="geom-legend">
+          <span><i class="sw" style="background:#1c1916"></i>график W</span>
+          <span><i class="sw" style="background:#3f6212"></i>ломаная</span>
+          <span><i class="sw" style="background:#1c1916;border-radius:99px"></i>уже есть W</span>
+          <span><i class="sw" style="background:#b45309"></i>сюда сейчас W</span>
+          <span><i class="sw" style="background:#fffdf8;border:1.5px solid #b45309"></i>угол, W нет</span>
+          <span><i class="sw" style="background:#3f6212;border-radius:99px"></i>ответ</span>
+        </div>
+        <div class="idea-dock">
+          <div class="card" id="idea-card"></div>
+          <div class="card" id="idea-side"></div>
+        </div>
+      `,
+      onEnter: bindIdea
+    },
+    {
+      id: "work",
+      phase: "Итерации",
+      toc: "Расчёт на нашей W",
+      title: "Считаем на нашей функции",
+      lead: "Та же схема, что на яме. Теперь W = ½(x−2)² + sin(πx), L = 6, ε = 1. Каждый угол с формулой, каждый стоп с числом.",
+      wide: true,
+      html: `
+        <div class="rebuild-nav">
+          <button class="nav-btn" id="rb-prev" type="button">←</button>
+          <button class="nav-btn" id="rb-next" type="button">→</button>
+          <span class="cnt" id="work-cnt">1 / 11</span>
+          <span class="hint">стрелки сначала листают шаги расчёта</span>
+        </div>
+        <div class="idea-pills" id="work-pills"></div>
+        <div class="fig" id="work-fig"></div>
+        <div class="geom-legend">
+          <span><i class="sw" style="background:#1c1916"></i>график W</span>
+          <span><i class="sw" style="background:#3f6212"></i>ломаная</span>
+          <span><i class="sw" style="background:#1c1916;border-radius:99px"></i>уже есть W</span>
+          <span><i class="sw" style="background:#b45309"></i>сюда сейчас W</span>
+          <span><i class="sw" style="background:#fffdf8;border:1.5px solid #b45309"></i>угол, W нет</span>
+          <span><i class="sw" style="background:#3f6212;border-radius:99px"></i>ответ</span>
+        </div>
+        <div class="idea-dock">
+          <div class="card" id="work-card"></div>
+          <div class="card" id="work-side"></div>
+        </div>
+      `,
+      onEnter: bindWork
+    },
+    {
+      id: "caveats",
+      phase: "Практическое задание",
+      toc: "Какое L брать",
+      title: "Какое L брать",
+      lead: "Та же W и те же уже посчитанные точки. Меняется только L. Смотрите, остаётся ломаная под графиком или протыкает его.",
+      wide: true,
+      html: `
+        <div class="seg" id="cave-seg">
+          <button type="button" data-cave="low">L = 3, мало</button>
+          <button type="button" data-cave="ok" class="on">L = 6, наша</button>
+          <button type="button" data-cave="high">L = 16, с запасом</button>
+        </div>
+        <div class="geom-layout">
+          <div>
+            <div class="fig" id="cave-fig"></div>
+            <div class="geom-legend">
+              <span><i class="sw" style="background:#1c1916"></i>график W</span>
+              <span><i class="sw" style="background:#3f6212"></i>ломаная под графиком</span>
+              <span><i class="sw" style="background:#9f1239"></i>ломаная проткнула</span>
+              <span><i class="sw" style="background:#1c1916;border-radius:99px"></i>уже есть W</span>
+            </div>
+          </div>
+          <div class="geom-story">
+            <div class="card">
+              <h3>Покрутите L</h3>
+              <div class="range-row">
+                <span>L</span>
+                <input type="range" id="cave-L" min="2" max="18" step="0.1" value="6" />
+                <span id="cave-Lval">6.0</span>
+              </div>
+              <p class="eq" id="cave-check" style="margin-top:12px"></p>
+              <p class="note" id="cave-msg"></p>
+            </div>
+            <div class="card" id="cave-story"></div>
+          </div>
+        </div>
+        <p class="note" style="margin-top:12px">Нужен максимум, тот же код на −W, в конце вернуть знак. Если такого L нет, как на ступеньке в постановке, метод так не обещает глобальный минимум.</p>
+      `,
+      onEnter: bindCaveats
+    },
+    {
+      id: "hw",
+      phase: "Практическое задание",
+      toc: "Практическое задание",
+      title: "Практическое задание",
+      lead: "Своя программа, своя функция с двумя ямами. Сдать PDF и ссылку на код.",
+      wide: true,
+      html: `
+        <div class="grid-2">
+          <div class="card">
+            <h3>Что сделать</h3>
+            <ol class="steps">
+              <li><span class="num">1</span><div>Свой код. Python удобен, можно C++, Java, что умеете. На вход: формула одной переменной строкой, концы отрезка, точность ε.</div></li>
+              <li><span class="num">2</span><div>На выход: рисунок (график, ломаная, найденная точка), x̂, Ŵ, сколько проб сделали, сколько времени ушло.</div></li>
+              <li><span class="num">3</span><div>Проверка на функции с хотя бы двумя локальными минимумами на отрезке. Одномерный срез Растригина или Экли подходит.</div></li>
+              <li><span class="num">4</span><div>L взять не меньше самой большой крутизны, с запасом, запас написать. Следующую пробу считать как пересечение галочек.</div></li>
+            </ol>
+          </div>
+          <div class="card">
+            <h3>Что сдать</h3>
+            <p>PDF и ссылка на код, Jupyter или репозиторий.</p>
+            <p style="margin-top:8px">В PDF: ФИО, поток, постановка, как брали L, картинка, ответ, число итераций и время, короткий вывод.</p>
+            <p class="note">Оценка 10 = 6 работа + 4 защита.</p>
+            <p style="margin-top:10px">Нельзя пройти отрезок мелкой сеткой и взять самый маленький W. Это уже не метод ломаных. В теме за замену пересечений сеткой −4 балла.</p>
+            <div class="ban">
+              <span>готовый поиск с GitHub</span>
+              <span>scipy.optimize вместо метода</span>
+              <span>min по тысяче точек linspace</span>
+            </div>
+          </div>
+        </div>
+      `
+    }
+  ];
+
+  function drawPlan() {
+    const fig = document.getElementById("plan-fig");
+    if (!fig) return;
+    fig.innerHTML = svgCurve({
+      fn: W,
+      x0: 0,
+      x1: 4,
+      yMin: -1.35,
+      yMax: 2.7,
+      h: 300,
+      points: [
+        { x: 0.320, y: 2.256, fill: "#1f4d63" },
+        { x: 1.546, y: -0.887, fill: "#3f6212" },
+        { x: 2.557, y: 1.139, fill: "#b45309" },
+        { x: 3.358, y: 0.020, fill: "#b45309" }
+      ],
+      marks: [
+        { x: 0.32, y: 2.256, text: "глоб. макс", fill: "#1f4d63", dx: 10, dy: -8 },
+        { x: 1.546, y: -0.887, text: "глоб. мин", fill: "#3f6212", dx: -18, dy: 20 },
+        { x: 2.557, y: 1.139, text: "лок. макс", fill: "#b45309", dx: 8, dy: -8 },
+        { x: 3.358, y: 0.020, text: "лок. мин", fill: "#b45309", dx: -16, dy: -10 },
+        { x: 0, y: 2, text: "a", fill: "#6b645b", dx: 8, dy: -8 },
+        { x: 4, y: 2, text: "b", fill: "#6b645b", dx: -18, dy: -8 }
+      ]
+    });
+  }
+
+  function bindLife() {
+    const seg = document.getElementById("life-seg");
+    const figTask = document.getElementById("life-fig");
+    const figLip = document.getElementById("life-lip-fig");
+    const figNo = document.getElementById("life-nolip-fig");
+    const slU = document.getElementById("life-u");
+    const slL = document.getElementById("life-L");
+    const slNoL = document.getElementById("nolip-L");
+    const slNoD = document.getElementById("nolip-d");
+    const cmp = document.getElementById("life-cmp");
+    const msg = document.getElementById("life-msg");
+    if (!seg) return;
+
+    function show(name) {
+      seg.querySelectorAll("button[data-life]").forEach(function (b) {
+        b.classList.toggle("on", b.getAttribute("data-life") === name);
+      });
+      document.querySelectorAll("[data-life-panel]").forEach(function (p) {
+        p.hidden = p.getAttribute("data-life-panel") !== name;
+      });
+      paint();
+    }
+
+    function drawTask() {
+      if (!figTask) return;
+      figTask.innerHTML = svgCurve({
+        fn: W,
+        x0: 0,
+        x1: 4,
+        yMin: -1.35,
+        yMax: 2.7,
+        h: 300,
+        points: [
+          { x: 1.546, y: -0.887, fill: "#3f6212" },
+          { x: 3.358, y: 0.020, fill: "#b45309" }
+        ],
+        marks: [
+          { x: 1.546, y: -0.887, text: "x ≈ 1.55, W ≈ −0.89", fill: "#3f6212", dx: -8, dy: 20 },
+          { x: 3.358, y: 0.020, text: "x ≈ 3.36, W ≈ 0.02", fill: "#b45309", dx: -28, dy: -12 },
+          { x: 0, y: 2, text: "0", fill: "#6b645b", dx: 8, dy: -8 },
+          { x: 4, y: 2, text: "4", fill: "#6b645b", dx: -16, dy: -8 }
+        ]
+      });
+    }
+
+    function paintLip() {
+      if (!figLip || !slU || !slL) return;
+      const u = +slU.value;
+      const ell = +slL.value;
+      const Wu = W(u);
+      document.getElementById("life-uval").textContent = u.toFixed(2);
+      document.getElementById("life-Lval").textContent = ell.toFixed(1);
+      figLip.innerHTML = svgCurve({
+        fn: W,
+        x0: 0,
+        x1: 4,
+        yMin: -2.6,
+        yMax: 3.2,
+        h: 300,
+        cone: { u: u, L: ell, Wu: Wu },
+        points: [{ x: u, y: Wu, fill: "#1f4d63" }],
+        marks: [{ x: u, y: Wu, text: "точка", fill: "#1f4d63", dx: u > 2 ? -48 : 8, dy: -10 }]
+      });
+      let pierce = false;
+      for (let i = 0; i <= 160; i++) {
+        const x = 4 * i / 160;
+        const d = ell * Math.abs(x - u);
+        if (W(x) > Wu + d + 1e-6 || W(x) < Wu - d - 1e-6) pierce = true;
+      }
+      cmp.textContent = pierce ? "График вылез из конуса" : "График внутри конуса";
+      msg.textContent = pierce
+        ? "Такое L слишком маленькое: в каком-то месте функция круче, чем L."
+        : "Из этой точки L хватает. Чтобы L годилась для всей функции, конус не должен протыкаться ни из одной точки.";
+    }
+
+    function paintNoLip() {
+      if (!figNo || !slNoL || !slNoD) return;
+      const ell = +slNoL.value;
+      const u = +slNoD.value;
+      const Wu = u < 1 ? 0 : 1;
+      const dist = Math.abs(u - 1);
+      const pierce = 1 > ell * dist + 1e-9;
+      const leftOut = pierce && u >= 1;
+      const rightOut = pierce && u < 1;
+      document.getElementById("nolip-Lval").textContent = ell.toFixed(1);
+      document.getElementById("nolip-dval").textContent = u.toFixed(2);
+      const leftStroke = leftOut ? "#9f1239" : "#1c1916";
+      const rightStroke = rightOut ? "#9f1239" : "#1c1916";
+      const marks = [
+        { x: u, y: Wu, text: "точка", fill: "#1f4d63", dx: u > 1.15 ? -48 : 8, dy: -10 },
+        { x: 1, y: 0.5, text: "скачок", fill: "#6b645b", dx: 10, dy: 4 }
+      ];
+      const vlines = [{ x: 1, y1: 0, y2: 1 }];
+      if (rightOut) {
+        const xOut = Math.min(1.35, 1 + 0.22);
+        vlines.push({ x: xOut, y1: Wu + ell * Math.abs(xOut - u), y2: 1, stroke: "#9f1239" });
+        marks.push({ x: xOut, y: 1, text: "вылез", fill: "#9f1239", dx: 8, dy: -8 });
+      } else if (leftOut) {
+        const xOut = Math.max(0.65, 1 - 0.22);
+        vlines.push({ x: xOut, y1: 0, y2: Wu - ell * Math.abs(xOut - u), stroke: "#9f1239" });
+        marks.push({ x: xOut, y: 0, text: "вылез", fill: "#9f1239", dx: -46, dy: 16 });
+      }
+      figNo.innerHTML = svgCurve({
+        noFn: true,
+        x0: 0,
+        x1: 2,
+        yMin: -1.6,
+        yMax: 2.6,
+        h: 300,
+        xstep: 0.5,
+        cone: { u: u, L: ell, Wu: Wu },
+        broken: [
+          { pts: [[0, 0], [1, 0]], stroke: leftStroke },
+          { pts: [[1, 1], [2, 1]], stroke: rightStroke }
+        ],
+        vlines: vlines,
+        points: [
+          { x: 1, y: 0, r: 5, fill: "#fffdf8", stroke: "#1c1916" },
+          { x: 1, y: 1, r: 5, fill: rightOut || leftOut ? "#9f1239" : "#1c1916" },
+          { x: u, y: Wu, fill: "#1f4d63" }
+        ],
+        marks: marks
+      });
+      const cmpNo = document.getElementById("nolip-cmp");
+      const msgNo = document.getElementById("nolip-msg");
+      cmpNo.textContent = pierce ? "График вылез из конуса" : "График внутри конуса";
+      if (rightOut) {
+        msgNo.textContent = "Правая ступенька выше прямой +L. Такое L не годится. Поднимите L: из этой точки конус может накрыть. Потом снова подвиньте точку к скачку.";
+      } else if (leftOut) {
+        msgNo.textContent = "Левая ступенька ниже прямой −L. Справа та же история. Какое L ни поставьте, у скачка график снова вылезет.";
+      } else {
+        msgNo.textContent = "Из этой точки конус накрыл ступеньку. Подвиньте точку к скачку: даже большое L не успевает закрыть разрыв.";
+      }
+    }
+
+    function paint() {
+      const onLip = !document.querySelector("[data-life-panel='lip']").hidden;
+      if (onLip) {
+        paintLip();
+        paintNoLip();
+      } else drawTask();
+    }
+
+    seg.querySelectorAll("button[data-life]").forEach(function (b) {
+      b.addEventListener("click", function (e) {
+        e.preventDefault();
+        show(b.getAttribute("data-life"));
+      });
+    });
+    [slU, slL].forEach(function (sl) {
+      if (sl) sl.addEventListener("input", paintLip);
+    });
+    if (slNoL) slNoL.addEventListener("input", paintNoLip);
+    if (slNoD) slNoD.addEventListener("input", paintNoLip);
+    document.querySelectorAll("[data-life-pair]").forEach(function (b) {
+      b.addEventListener("click", function (e) {
+        e.preventDefault();
+        slU.value = "4";
+        slL.value = b.getAttribute("data-life-pair") === "ok" ? "6" : "3";
+        paintLip();
+      });
+    });
+    document.querySelectorAll("[data-nolip-pair]").forEach(function (b) {
+      b.addEventListener("click", function (e) {
+        e.preventDefault();
+        if (b.getAttribute("data-nolip-pair") === "far") {
+          slNoD.value = "0.20";
+          slNoL.value = "6";
+        } else {
+          slNoD.value = "0.88";
+          slNoL.value = "6";
+        }
+        paintNoLip();
+      });
+    });
+    show("task");
+  }
+
+  function bindCaveats() {
+    const fig = document.getElementById("cave-fig");
+    const sl = document.getElementById("cave-L");
+    const val = document.getElementById("cave-Lval");
+    const chk = document.getElementById("cave-check");
+    const msg = document.getElementById("cave-msg");
+    const story = document.getElementById("cave-story");
+    const seg = document.getElementById("cave-seg");
+    if (!fig || !sl) return;
+    const uppers = [[0, Wpair(0)], [1, Wpair(1)], [2, Wpair(2)], [4, Wpair(4)]];
+    function envOf(ell) {
+      const s = uppers.slice().sort(function (a, b) { return a[0] - b[0]; });
+      const pts = [];
+      let out = null;
+      let minP = 0;
+      for (let i = 0; i < s.length - 1; i++) {
+        const uq = s[i][0], Wq = s[i][1], uv = s[i + 1][0], Wv = s[i + 1][1];
+        const x = (Wq - Wv) / (2 * ell) + (uq + uv) / 2;
+        const p = Wq - ell * (x - uq);
+        if (i === 0) pts.push([uq, Wq]);
+        pts.push([x, p], [uv, Wv]);
+        minP = Math.min(minP, p);
+        if (x < uq - 1e-6 || x > uv + 1e-6) out = { x: x, uq: uq, uv: uv };
+      }
+      return { pts: pts, out: out, minP: minP };
+    }
+    function pierced(ell) {
+      for (let i = 0; i <= 160; i++) {
+        const x = 4 * i / 160;
+        const Wx = W(x);
+        let g = -1e9;
+        uppers.forEach(function (u) {
+          g = Math.max(g, u[1] - ell * Math.abs(x - u[0]));
+        });
+        if (g > Wx + 0.04) return true;
+      }
+      return false;
+    }
+    function worstNeed() {
+      let need = 0, a = uppers[0], b = uppers[1];
+      for (let i = 0; i < uppers.length - 1; i++) {
+        const u = uppers[i], v = uppers[i + 1];
+        const n = Math.abs(u[1] - v[1]) / Math.abs(v[0] - u[0]);
+        if (n > need) { need = n; a = u; b = v; }
+      }
+      return { need: need, a: a, b: b };
+    }
+    function paint() {
+      const ell = +sl.value;
+      val.textContent = ell.toFixed(1);
+      const env = envOf(ell);
+      const bad = pierced(ell);
+      const wr = worstNeed();
+      const yMin = Math.max(-8.5, Math.min(-1.4, env.minP - 0.4));
+      fig.innerHTML = svgCurve({
+        fn: W,
+        x0: 0,
+        x1: 4,
+        yMin: yMin,
+        yMax: 2.7,
+        h: 320,
+        broken: [{ pts: env.pts, stroke: bad ? "#9f1239" : "#3f6212" }],
+        points: uppers.map(function (u) {
+          return { x: u[0], y: u[1], fill: "#1c1916", r: 5.5 };
+        }),
+        marks: [
+          { x: 1.55, y: -0.89, text: "яма", fill: "#3f6212", dx: -8, dy: 18 }
+        ]
+      });
+      chk.innerHTML = "на отрезке [" + wr.a[0] + ", " + wr.b[0] + "]: |ΔW| / |Δx| ≈ " + wr.need.toFixed(2) +
+        (wr.need > ell + 1e-9 ? " &gt; L" : " ≤ L");
+      if (bad) {
+        msg.textContent = "Ломаная пересекла график. L меньше крутизны W.";
+        story.innerHTML = "<h3>L мало</h3>" +
+          "<p>Ломаная должна быть целиком под графиком. Здесь она проткнула W. Угол может стать глубже настоящей ямы, хотя ямы там нет.</p>" +
+          "<p style='margin-top:8px'>Метод пойдёт в этот фальшивый карман и левую яму может не посмотреть. В коде проверка: если угол вылез из отрезка между двумя пробами, L надо увеличить.</p>";
+      } else if (ell > 10) {
+        msg.textContent = "Ломаная под графиком, зубья очень глубокие.";
+        story.innerHTML = "<h3>L с большим запасом</h3>" +
+          "<p>Ломаная не протыкает график, метод честный. Но углы сидят глубоко, зазор падает медленно, шагов много.</p>" +
+          "<p style='margin-top:8px'>Поэтому L берут чуть больше max|W′|, не «сто тысяч». У нас max|W′| ≈ 5.14, взяли 6.</p>";
+      } else {
+        msg.textContent = "Ломаная под графиком. Так мы считали на паре.";
+        story.innerHTML = "<h3>L хватает</h3>" +
+          "<p>Из каждой чёрной точки склон не меньше крутизны W. Ломаная снизу обнимает график и не пересекает его.</p>" +
+          "<p style='margin-top:8px'>Тогда самый глубокий угол, это честный кандидат. Метод не пропустит яму только потому, что сам себе вырыл дырку.</p>";
+      }
+      if (seg) {
+        seg.querySelectorAll("button").forEach(function (b) {
+          const key = b.getAttribute("data-cave");
+          const on = (key === "low" && Math.abs(ell - 3) < 0.05) ||
+            (key === "ok" && Math.abs(ell - 6) < 0.05) ||
+            (key === "high" && Math.abs(ell - 16) < 0.05);
+          b.classList.toggle("on", on);
+        });
+      }
+    }
+    sl.addEventListener("input", paint);
+    if (seg) {
+      seg.addEventListener("click", function (e) {
+        const b = e.target.closest("button[data-cave]");
+        if (!b) return;
+        const key = b.getAttribute("data-cave");
+        sl.value = key === "low" ? "3" : key === "high" ? "16" : "6";
+        paint();
+      });
+    }
+    paint();
+  }
+
+  function ideaW(x) {
+    return 0.42 + 0.20 * (x - 2) * (x - 2) + 0.06 * Math.sin(Math.PI * x / 2);
+  }
+
+  function svgIdea(opt) {
+    opt = opt || {};
+    const ell = opt.L || 0.95;
+    const w = opt.w || 880;
+    const h = opt.h || 390;
+    const padL = 46, padR = 18, padT = 34, padB = 56;
+    const x0 = -0.15, x1 = 4.35;
+    const yMin = -1.25, yMax = 1.65;
+    function X(x) { return padL + (x - x0) / (x1 - x0) * (w - padL - padR); }
+    function Y(y) { return padT + (yMax - y) / (yMax - yMin) * (h - padT - padB); }
+    function pathOf(pts) {
+      return pts.map(function (p, i) {
+        return (i ? "L" : "M") + X(p[0]).toFixed(1) + " " + Y(p[1]).toFixed(1);
+      }).join(" ");
+    }
+    function pill(px, py, text, kind) {
+      const tw = Math.max(36, text.length * 7.05 + 14);
+      const th = 20;
+      const x = px - tw / 2;
+      const y = py - th / 2;
+      const fill = kind === "pick" ? "#f3e0c8" : kind === "ok" ? "#e8efd8" : kind === "idle" ? "#fffdf8" : "#e4eef2";
+      const stroke = kind === "pick" ? "#b45309" : kind === "ok" ? "#3f6212" : kind === "idle" ? "#a39b90" : "#1f4d63";
+      const ink = kind === "pick" ? "#9a3412" : kind === "ok" ? "#3f6212" : kind === "idle" ? "#6b645b" : "#1f4d63";
+      return '<rect x="' + x.toFixed(1) + '" y="' + y.toFixed(1) + '" width="' + tw.toFixed(1) + '" height="' + th + '" rx="10" fill="' + fill + '" stroke="' + stroke + '"/>'
+        + '<text x="' + px.toFixed(1) + '" y="' + (py + 4).toFixed(1) + '" font-size="12" font-weight="650" fill="' + ink + '" text-anchor="middle">' + text + "</text>";
+    }
+    const samples = [];
+    for (let i = 0; i <= 220; i++) {
+      const x = 4 * i / 220;
+      samples.push([x, ideaW(x)]);
+    }
+    const uppers = (opt.uppers || []).slice().sort(function (a, b) { return a[0] - b[0]; });
+    const lowers = opt.lowers || [];
+    const pick = opt.pick;
+    const look = opt.look;
+    let g = '<svg viewBox="0 0 ' + w + " " + h + '" role="img">';
+    g += '<rect width="' + w + '" height="' + h + '" fill="#fffdf8"/>';
+    g += '<g font-family="Segoe UI, Cambria, Georgia, serif">';
+    g += '<line x1="' + X(x0) + '" y1="' + Y(0) + '" x2="' + X(x1) + '" y2="' + Y(0) + '" stroke="#d9d0c3"/>';
+    g += '<line x1="' + X(0) + '" y1="' + Y(yMin) + '" x2="' + X(0) + '" y2="' + Y(yMax) + '" stroke="#d9d0c3"/>';
+    g += '<text x="' + (w - 10) + '" y="' + (Y(0) - 8) + '" font-size="12" fill="#6b645b" text-anchor="end">x</text>';
+    g += '<text x="' + (X(0) + 8) + '" y="' + (padT + 2) + '" font-size="12" fill="#6b645b">W(x)</text>';
+    if (opt.showW !== false) {
+      g += '<path d="' + pathOf(samples) + '" fill="none" stroke="#1c1916" stroke-width="2"/>';
+    }
+    const raySrc = opt.rays != null ? opt.rays : (opt.bare ? [] : uppers);
+    raySrc.forEach(function (u) {
+      const accent = opt.accentX != null && Math.abs(u[0] - opt.accentX) < 1e-6;
+      const ray = [];
+      for (let i = 0; i <= 80; i++) {
+        const x = x0 + (x1 - x0) * i / 80;
+        ray.push([x, u[1] - ell * Math.abs(x - u[0])]);
+      }
+      g += '<path d="' + pathOf(ray) + '" fill="none" stroke="' + (accent ? "#3f6212" : "#c5d0c2") + '" stroke-width="' + (accent ? 2.5 : 1.3) + '"/>';
+    });
+    if (opt.slopes && raySrc.length) {
+      const u = opt.accentX != null
+        ? (raySrc.filter(function (p) { return Math.abs(p[0] - opt.accentX) < 1e-6; })[0] || raySrc[0])
+        : raySrc[0];
+      const d = 0.9;
+      if (u[0] > 0.35) g += pill(X(u[0] - d), Y(u[1] - ell * d) + 2, "+L", "up");
+      if (u[0] < 3.65) g += pill(X(u[0] + d), Y(u[1] - ell * d) + 2, "−L", "up");
+    }
+    if (!opt.bare && opt.env !== false && uppers.length >= 2) {
+      const env = [];
+      for (let i = 0; i < uppers.length - 1; i++) {
+        const a = uppers[i], b = uppers[i + 1];
+        const xx = (a[1] - b[1]) / (2 * ell) + (a[0] + b[0]) / 2;
+        const pp = a[1] - ell * (xx - a[0]);
+        if (i === 0) env.push([a[0], a[1]]);
+        env.push([xx, pp], [b[0], b[1]]);
+      }
+      g += '<path d="' + pathOf(env) + '" fill="none" stroke="#3f6212" stroke-width="2.6"/>';
+    }
+    uppers.forEach(function (u) {
+      g += '<line x1="' + X(u[0]) + '" y1="' + Y(0) + '" x2="' + X(u[0]) + '" y2="' + Y(u[1]) + '" stroke="#cfc6b8" stroke-width="1.1" stroke-dasharray="3 3"/>';
+    });
+    lowers.forEach(function (lo, i) {
+      const isPick = pick != null && Math.abs(lo.x - pick) < 1e-6;
+      const isLook = look != null && look === i;
+      g += '<line x1="' + X(lo.x) + '" y1="' + Y(lo.p) + '" x2="' + X(lo.x) + '" y2="' + (h - 22) + '" stroke="' + (isPick ? "#b45309" : "#d9d0c3") + '" stroke-width="1.1" stroke-dasharray="3 3"/>';
+      g += '<circle class="idea-hit" data-lo="' + i + '" cx="' + X(lo.x) + '" cy="' + Y(lo.p) + '" r="14" fill="transparent"/>';
+      g += '<circle class="idea-hit" data-lo="' + i + '" cx="' + X(lo.x) + '" cy="' + Y(lo.p) + '" r="' + (isPick ? 7 : 5.5) + '" fill="' + (isPick ? "#b45309" : "#fffdf8") + '" stroke="' + (isLook && !isPick ? "#1f4d63" : "#b45309") + '" stroke-width="' + (isLook ? 2.4 : 1.6) + '"/>';
+    });
+    if (opt.lift) {
+      const lf = opt.lift;
+      g += '<line x1="' + X(lf.x) + '" y1="' + Y(lf.p) + '" x2="' + X(lf.x) + '" y2="' + Y(lf.Wu) + '" stroke="#b45309" stroke-width="2.4"/>';
+      g += '<polygon points="' + X(lf.x).toFixed(1) + "," + Y(lf.Wu).toFixed(1) + " " + (X(lf.x) - 6).toFixed(1) + "," + (Y(lf.Wu) + 12).toFixed(1) + " " + (X(lf.x) + 6).toFixed(1) + "," + (Y(lf.Wu) + 12).toFixed(1) + '" fill="#b45309"/>';
+      g += '<circle cx="' + X(lf.x) + '" cy="' + Y(lf.Wu) + '" r="6.5" fill="#1c1916"/>';
+      g += pill(X(lf.x) + 44, (Y(lf.p) + Y(lf.Wu)) / 2, "тот же x", "pick");
+      g += pill(X(lf.x) - 38, Y(lf.p) + 2, "p, ломаная", "idle");
+    }
+    if (opt.gap) {
+      const gp = opt.gap;
+      g += '<line x1="' + X(gp.x) + '" y1="' + Y(gp.p) + '" x2="' + X(gp.x) + '" y2="' + Y(gp.Wu) + '" stroke="#9f1239" stroke-width="2.2"/>';
+      g += '<circle cx="' + X(gp.x) + '" cy="' + Y(gp.p) + '" r="4.5" fill="#fffdf8" stroke="#9f1239" stroke-width="1.6"/>';
+      g += pill(X(gp.x) + 48, (Y(gp.p) + Y(gp.Wu)) / 2, "δ = " + gp.delta, "pick");
+    }
+    uppers.forEach(function (u) {
+      const isAns = opt.answer && Math.abs(u[0] - opt.answer[0]) < 1e-6;
+      g += '<circle cx="' + X(u[0]) + '" cy="' + Y(u[1]) + '" r="' + (isAns ? 8 : 5.5) + '" fill="' + (isAns ? "#3f6212" : "#1c1916") + '"'
+        + (isAns ? ' stroke="#1c1916" stroke-width="1.4"' : "") + "/>";
+    });
+    if (opt.answer) {
+      g += pill(X(opt.answer[0]), Y(opt.answer[1]) - 22, "ответ", "ok");
+    }
+    const usedTop = [];
+    function topY(px) {
+      let yy = Y(ideaW(Math.max(0, Math.min(4, px)))) - 18;
+      usedTop.forEach(function (t) {
+        if (Math.abs(t.x - px) < 0.85 && Math.abs(t.y - yy) < 18) yy -= 20;
+      });
+      usedTop.push({ x: px, y: yy });
+      return yy;
+    }
+    if (opt.labelU) {
+      opt.labelU.forEach(function (lb) {
+        g += pill(X(lb.x), topY(lb.x), lb.text, "up");
+      });
+    }
+    if (opt.foot) {
+      const showAll = lowers.length <= 2;
+      lowers.forEach(function (lo) {
+        const isPick = pick != null && Math.abs(lo.x - pick) < 1e-6;
+        if (!showAll && !isPick) return;
+        g += pill(X(lo.x), h - 16, isPick ? "этот x" : "не этот x", isPick ? "pick" : "idle");
+      });
+    }
+    g += '<text x="' + (X(0) + 10) + '" y="' + (Y(0) + 16) + '" font-size="12" fill="#6b645b">a</text>';
+    g += '<text x="' + (X(4) - 10) + '" y="' + (Y(0) + 16) + '" font-size="12" fill="#6b645b" text-anchor="end">b</text>';
+    g += "</g></svg>";
+    return g;
+  }
+
+  function bindIdea() {
+    const fig = document.getElementById("idea-fig");
+    const card = document.getElementById("idea-card");
+    const side = document.getElementById("idea-side");
+    const pills = document.getElementById("idea-pills");
+    const cnt = document.getElementById("idea-cnt");
+    const prevB = document.getElementById("rb-prev");
+    const nextB = document.getElementById("rb-next");
+    if (!fig) return;
+    const ell = 0.95;
+    function xcross(uq, Wq, uv, Wv) {
+      const x = (Wq - Wv) / (2 * ell) + (uq + uv) / 2;
+      return { x: x, p: Wq - ell * (x - uq) };
+    }
+    function lowersOf(U) {
+      const s = U.slice().sort(function (a, b) { return a[0] - b[0]; });
+      const out = [];
+      for (let i = 0; i < s.length - 1; i++) out.push(xcross(s[i][0], s[i][1], s[i + 1][0], s[i + 1][1]));
+      return out;
+    }
+    function pickOf(lows) {
+      let best = lows[0];
+      lows.forEach(function (lo) {
+        if (lo.p < best.p - 1e-12 || (Math.abs(lo.p - best.p) < 1e-12 && lo.x < best.x)) best = lo;
+      });
+      return best;
+    }
+    function grow(U) {
+      const pk = pickOf(lowersOf(U));
+      return U.concat([[pk.x, ideaW(pk.x)]]);
+    }
+    const U0 = [[0, ideaW(0)], [4, ideaW(4)]];
+    const hist = [U0];
+    const picks = [];
+    for (let t = 0; t < 4; t++) {
+      picks.push(pickOf(lowersOf(hist[t])));
+      hist.push(grow(hist[t]));
+    }
+    const ideaEps = 0.28;
+    const lastLo = picks[3];
+    const lastDelta = ideaW(lastLo.x) - lastLo.p;
+    let answer = hist[4][0];
+    hist[4].forEach(function (u) {
+      if (u[1] < answer[1] - 1e-12) answer = u;
+    });
+    const sub = "₀₁₂₃₄₅₆₇₈₉";
+    function subn(n) {
+      return String(n).split("").map(function (d) { return sub[+d]; }).join("");
+    }
+    function nameU(x) {
+      if (Math.abs(x) < 1e-6) return "W(u₀)";
+      if (Math.abs(x - 4) < 1e-6) return "W(u₁)";
+      for (let i = 0; i < picks.length; i++) {
+        if (Math.abs(x - picks[i].x) < 1e-4) return "W(u" + subn(i + 2) + ")";
+      }
+      return "W";
+    }
+    const names = ["Концы", "Ломаная", "Проба u₂", "Два угла", "u₃ слева", "u₄ справа", "u₅", "Стоп"];
+    const steps = [
+      {
+        uppers: hist[0],
+        bare: true,
+        title: "Сначала только концы",
+        body: "Ищем дно ямы на [a, b]. Первые пробы на концах. W там уже есть. Дальше каждый шаг одна новая проба."
+      },
+      {
+        uppers: hist[0],
+        foot: true,
+        showPick: true,
+        title: "Две галочки, один угол",
+        body: "Из каждой чёрной точки галочка ±L. Зелёная ломаная, их потолок. Один нижний угол, посередине ямы. Туда сейчас пойдём считать W.",
+        eq: "g = W(u) − L|x − u|, &nbsp; p = max g"
+      },
+      {
+        uppers: hist[0],
+        foot: true,
+        showPick: true,
+        liftLo: picks[0],
+        title: "Посчитали W(u₂)",
+        body: "В выбранном x посчитали W. Точка села на дно ямы, на график. Оранжевый угол, это было p. Дальше из новой точки нарисуем галочку и пересоберём ломаную."
+      },
+      {
+        uppers: hist[1],
+        foot: true,
+        showPick: true,
+        title: "Ломаная из трёх галочек",
+        body: "Старый угол исчез. Два новых, p одинаковый. На этом шаге W только слева. Правый кружок не выкинули, просто пробы там нет."
+      },
+      {
+        uppers: hist[2],
+        foot: true,
+        showPick: true,
+        title: "Посчитали W(u₃) слева",
+        body: "Левый угол стал чёрной точкой. Ломаную снова перерисовали. Правый пустой кружок тот же. Теперь он самый нижний, оранжевый переехал."
+      },
+      {
+        uppers: hist[3],
+        foot: true,
+        showPick: true,
+        title: "Посчитали W(u₄) справа",
+        body: "Отдельный шаг. Тот x, который был «не этот», стал самым нижним, вот тогда посчитали W. Снова смотрим все углы новой ломаной."
+      },
+      {
+        uppers: hist[4],
+        foot: true,
+        showPick: false,
+        title: "Посчитали W(u₅)",
+        body: "Опять проба в самом нижнем угле. Теперь смотрим зазор: насколько ломаная не дотянула до графика в этой точке."
+      },
+      {
+        uppers: hist[4],
+        hideLowers: true,
+        gap: { x: lastLo.x, p: lastLo.p, Wu: ideaW(lastLo.x), delta: lastDelta.toFixed(2) },
+        answer: answer,
+        title: "Стоп: зазор меньше ε",
+        body: "δ = W(u₅) − p = " + lastDelta.toFixed(2) + " < ε = " + ideaEps + ". Глубже минимума уже не спрятать. Ответ не оранжевый угол, а лучшая чёрная точка: самая маленькая W.",
+        eq: "W(u₅) − p = " + lastDelta.toFixed(2) + " &lt; " + ideaEps
+      }
+    ];
+    let k = 0;
+    let look = null;
+    if (pills) {
+      pills.innerHTML = names.map(function (n, i) {
+        return "<button type='button' data-idea-k='" + i + "'>" + (i + 1) + ". " + n + "</button>";
+      }).join("");
+    }
+    function paint() {
+      const s = steps[k];
+      const U = s.uppers.slice().sort(function (a, b) { return a[0] - b[0]; });
+      const lows = (s.bare || s.hideLowers) ? [] : lowersOf(U);
+      const pk = lows.length ? pickOf(lows) : null;
+      const pickX = pk && s.showPick ? pk.x : null;
+      let labelU = U.map(function (u) { return { x: u[0], text: nameU(u[0]) }; });
+      if (s.liftLo) labelU.push({ x: s.liftLo.x, text: nameU(s.liftLo.x) });
+      if (s.answer) {
+        labelU = labelU.filter(function (lb) { return Math.abs(lb.x - s.answer[0]) > 1e-6; });
+      }
+      fig.innerHTML = svgIdea({
+        uppers: U,
+        rays: s.rays,
+        env: s.env,
+        accentX: s.accentX,
+        slopes: !!s.slopes,
+        lowers: lows,
+        pick: pickX,
+        look: look,
+        bare: !!s.bare,
+        foot: !!s.foot,
+        lift: s.liftLo ? { x: s.liftLo.x, p: s.liftLo.p, Wu: ideaW(s.liftLo.x) } : null,
+        gap: s.gap || null,
+        answer: s.answer || null,
+        labelU: labelU
+      });
+      card.innerHTML = "<h3>" + s.title + "</h3><p>" + s.body + "</p>";
+      if (s.eq) card.innerHTML += "<p class='eq'>" + s.eq + "</p>";
+      let sideH = "";
+      if (s.liftLo) {
+        const lf = s.liftLo;
+        sideH = "<h3>Что на этом x</h3>";
+        sideH += "<p class='eq' style='margin:0 0 8px'>x ≈ " + fmt(lf.x, 2) + "</p>";
+        sideH += "<p>p ≈ " + fmt(lf.p, 2) + ", высота ломаной, оранжевый кружок.</p>";
+        sideH += "<p>W ≈ " + fmt(ideaW(lf.x), 2) + ", значение функции, чёрная точка на графике.</p>";
+        sideH += "<p class='note'>W не живёт в оранжевом угле. Мы только взяли у него x. После пробы угол снизу пропадёт, останется верхняя точка.</p>";
+      } else if (s.answer) {
+        sideH = "<h3>Какую точку берём</h3>";
+        sideH += "<p class='eq' style='margin:0 0 8px'>δ = " + lastDelta.toFixed(2) + " &lt; ε = " + ideaEps + "</p>";
+        sideH += "<table class='sx tiny'><thead><tr><th>точка</th><th>W</th></tr></thead><tbody>";
+        U.slice().sort(function (a, b) { return a[1] - b[1]; }).forEach(function (u) {
+          const isAns = Math.abs(u[0] - s.answer[0]) < 1e-6;
+          sideH += "<tr><td class='" + (isAns ? "best" : "up") + "'>" + nameU(u[0]) + ", x ≈ " + fmt(u[0], 2) + "</td>";
+          sideH += "<td class='" + (isAns ? "best" : "") + "'>" + fmt(u[1], 2) + (isAns ? " · ответ" : "") + "</td></tr>";
+        });
+        sideH += "</tbody></table>";
+        sideH += "<p class='note'>Стоп по зазору в последней пробе. Ответ, лучшая уже посчитанная W. Здесь это " + nameU(s.answer[0]) + ".</p>";
+      } else if (s.side) {
+        sideH = s.side;
+      } else if (!lows.length) {
+        sideH = "<h3>Углы ломаной</h3><p class='note' style='margin-top:0'>Нижнего угла пока нет. Он появится, когда сложим галочки в потолок.</p>";
+      } else {
+        sideH += "<h3>Углы ломаной</h3>";
+        sideH += "<p class='note' style='margin:0 0 8px'>Выберите угол в таблице. Берём тот, у кого p меньше.</p>";
+        sideH += "<table class='sx tiny'><thead><tr><th>угол</th><th>p</th><th></th></tr></thead><tbody>";
+        lows.forEach(function (lo, i) {
+          const isPick = pickX != null && Math.abs(lo.x - pickX) < 1e-6;
+          const isLook = look === i;
+          sideH += "<tr data-lo='" + i + "'" + (isLook || isPick ? " class='" + (isPick && isLook ? "pick" : isPick ? "pick" : "") + "'" : "") + ">";
+          sideH += "<td class='" + (isPick ? "pick" : "") + "'>" + (i + 1) + ", x ≈ " + fmt(lo.x, 2) + "</td>";
+          sideH += "<td class='" + (isPick ? "pick" : "") + "'>" + fmt(lo.p, 2) + "</td>";
+          sideH += "<td><button type='button' data-lo='" + i + "'>" + (isLook ? "выбран" : "выбрать") + "</button></td></tr>";
+        });
+        sideH += "</tbody></table>";
+        if (look == null) {
+          sideH += "<p class='note'>Нажмите «выбрать». Правильный угол, с самым маленьким p. Если ничья, левый.</p>";
+        } else {
+          const lo = lows[look];
+          const isPick = pickX != null && Math.abs(lo.x - pickX) < 1e-6;
+          sideH += isPick
+            ? "<p class='note'>Да. У этого угла самое маленькое p. Здесь будет проба W.</p>"
+            : "<p class='note'>Нет. p здесь больше, чем у самого нижнего. Этот угол рисуем, W не считаем.</p>";
+        }
+      }
+      side.innerHTML = sideH;
+      if (cnt) cnt.textContent = (k + 1) + " / " + steps.length;
+      if (prevB) prevB.disabled = k === 0;
+      if (nextB) nextB.disabled = k === steps.length - 1;
+      if (pills) {
+        pills.querySelectorAll("button").forEach(function (b) {
+          b.classList.toggle("on", +b.getAttribute("data-idea-k") === k);
+        });
+      }
+      fig.querySelectorAll("[data-lo]").forEach(function (el) {
+        el.addEventListener("click", function (e) {
+          e.preventDefault();
+          look = +el.getAttribute("data-lo");
+          paint();
+        });
+      });
+      side.querySelectorAll("[data-lo]").forEach(function (el) {
+        el.addEventListener("click", function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+          look = +el.getAttribute("data-lo");
+          paint();
+        });
+      });
+    }
+    function go(nk) {
+      k = nk;
+      look = null;
+      paint();
+    }
+    if (prevB) prevB.onclick = function () { if (k > 0) go(k - 1); };
+    if (nextB) nextB.onclick = function () { if (k < steps.length - 1) go(k + 1); };
+    if (pills) {
+      pills.addEventListener("click", function (e) {
+        const b = e.target.closest("button[data-idea-k]");
+        if (!b) return;
+        go(+b.getAttribute("data-idea-k"));
+      });
+    }
+    paint();
+  }
+
+  function svgWork(opt) {
+    opt = opt || {};
+    const w = opt.w || 880;
+    const h = opt.h || 350;
+    const padL = 46, padR = 16, padT = 30, padB = 34;
+    const x0 = 0, x1 = 4;
+    const uppers = (opt.uppers || []).slice().sort(function (a, b) { return a[0] - b[0]; });
+    const lowers = opt.lowers || [];
+    const pick = opt.pick;
+    const look = opt.look;
+    const samples = [];
+    for (let i = 0; i <= 220; i++) {
+      const x = 4 * i / 220;
+      samples.push([x, W(x)]);
+    }
+    const broken = (!opt.bare && uppers.length >= 2) ? brokenPts(uppers) : [];
+    let yMin = opt.yMin, yMax = opt.yMax;
+    if (yMin == null || yMax == null) {
+      const ys = samples.map(function (p) { return p[1]; });
+      broken.forEach(function (p) { ys.push(p[1]); });
+      if (opt.lift) { ys.push(opt.lift.p, opt.lift.Wu); }
+      if (opt.gap) { ys.push(opt.gap.p, opt.gap.Wu); }
+      yMin = Math.min.apply(null, ys);
+      yMax = Math.max.apply(null, ys);
+      const span = Math.max(1.8, yMax - yMin);
+      yMin -= span * 0.10;
+      yMax += span * 0.14;
+    }
+    function X(x) { return padL + (x - x0) / (x1 - x0) * (w - padL - padR); }
+    function Y(y) { return padT + (yMax - y) / (yMax - yMin) * (h - padT - padB); }
+    function pathOf(pts) {
+      return pts.map(function (p, i) {
+        return (i ? "L" : "M") + X(p[0]).toFixed(1) + " " + Y(p[1]).toFixed(1);
+      }).join(" ");
+    }
+    function pill(px, py, text, kind) {
+      const tw = Math.max(36, text.length * 7.05 + 14);
+      const th = 20;
+      const x = px - tw / 2;
+      const y = py - th / 2;
+      const fill = kind === "pick" ? "#f3e0c8" : kind === "ok" ? "#e8efd8" : kind === "idle" ? "#fffdf8" : "#e4eef2";
+      const stroke = kind === "pick" ? "#b45309" : kind === "ok" ? "#3f6212" : kind === "idle" ? "#a39b90" : "#1f4d63";
+      const ink = kind === "pick" ? "#9a3412" : kind === "ok" ? "#3f6212" : kind === "idle" ? "#6b645b" : "#1f4d63";
+      return '<rect x="' + x.toFixed(1) + '" y="' + y.toFixed(1) + '" width="' + tw.toFixed(1) + '" height="' + th + '" rx="10" fill="' + fill + '" stroke="' + stroke + '"/>'
+        + '<text x="' + px.toFixed(1) + '" y="' + (py + 4).toFixed(1) + '" font-size="12" font-weight="650" fill="' + ink + '" text-anchor="middle">' + text + "</text>";
+    }
+
+    let g = '<svg viewBox="0 0 ' + w + " " + h + '" role="img">';
+    g += '<rect width="' + w + '" height="' + h + '" fill="#fffdf8"/>';
+    g += '<g font-family="Segoe UI, Cambria, Georgia, serif">';
+    for (let t = 0; t <= 4; t++) {
+      g += '<line x1="' + X(t) + '" y1="' + Y(yMin) + '" x2="' + X(t) + '" y2="' + Y(yMax) + '" stroke="#efe8dc"/>';
+      g += '<text x="' + X(t) + '" y="' + (h - 8) + '" font-size="12" fill="#6b645b" text-anchor="middle">' + t + "</text>";
+    }
+    const yTicks = 4;
+    for (let i = 0; i <= yTicks; i++) {
+      const yv = yMin + (yMax - yMin) * i / yTicks;
+      g += '<line x1="' + X(x0) + '" y1="' + Y(yv) + '" x2="' + X(x1) + '" y2="' + Y(yv) + '" stroke="#efe8dc"/>';
+      g += '<text x="' + (padL - 8) + '" y="' + (Y(yv) + 4) + '" font-size="11" fill="#6b645b" text-anchor="end">' + fmt(yv, 1) + "</text>";
+    }
+    g += '<line x1="' + X(x0) + '" y1="' + Y(0) + '" x2="' + X(x1) + '" y2="' + Y(0) + '" stroke="#d9d0c3"/>';
+    g += '<path d="' + pathOf(samples) + '" fill="none" stroke="#1c1916" stroke-width="2"/>';
+    if (opt.rays) {
+      uppers.forEach(function (u) {
+        const ray = [];
+        for (let i = 0; i <= 80; i++) {
+          const x = x0 + (x1 - x0) * i / 80;
+          ray.push([x, u[1] - L * Math.abs(x - u[0])]);
+        }
+        g += '<path d="' + pathOf(ray) + '" fill="none" stroke="#c5d0c2" stroke-width="1.3"/>';
+      });
+      if (uppers.length >= 2) {
+        g += pill(X(1), Y(uppers[0][1] - L * (1 - uppers[0][0])), "склон −L", "up");
+        g += pill(X(3), Y(uppers[uppers.length - 1][1] - L * (uppers[uppers.length - 1][0] - 3)), "склон +L", "up");
+      }
+    }
+    if (broken.length) {
+      g += '<path d="' + pathOf(broken) + '" fill="none" stroke="#3f6212" stroke-width="2.5"/>';
+    }
+    uppers.forEach(function (u) {
+      g += '<line x1="' + X(u[0]) + '" y1="' + Y(0) + '" x2="' + X(u[0]) + '" y2="' + Y(u[1]) + '" stroke="#cfc6b8" stroke-width="1.1" stroke-dasharray="3 3"/>';
+    });
+    lowers.forEach(function (lo, i) {
+      const isPick = pick != null && Math.abs(lo.x - pick) < 1e-6;
+      const isLook = look != null && look === i;
+      g += '<line x1="' + X(lo.x) + '" y1="' + Y(lo.p) + '" x2="' + X(lo.x) + '" y2="' + (h - 20) + '" stroke="' + (isPick ? "#b45309" : "#d9d0c3") + '" stroke-width="1.1" stroke-dasharray="3 3"/>';
+      g += '<circle class="idea-hit" data-lo="' + i + '" cx="' + X(lo.x) + '" cy="' + Y(lo.p) + '" r="14" fill="transparent"/>';
+      g += '<circle class="idea-hit" data-lo="' + i + '" cx="' + X(lo.x) + '" cy="' + Y(lo.p) + '" r="' + (isPick ? 7 : 5.5) + '" fill="' + (isPick ? "#b45309" : "#fffdf8") + '" stroke="' + (isLook && !isPick ? "#1f4d63" : "#b45309") + '" stroke-width="' + (isLook ? 2.4 : 1.6) + '"/>';
+    });
+    if (opt.lift) {
+      const lf = opt.lift;
+      g += '<line x1="' + X(lf.x) + '" y1="' + Y(lf.p) + '" x2="' + X(lf.x) + '" y2="' + Y(lf.Wu) + '" stroke="#b45309" stroke-width="2.4"/>';
+      g += '<polygon points="' + X(lf.x).toFixed(1) + "," + Y(lf.Wu).toFixed(1) + " " + (X(lf.x) - 6).toFixed(1) + "," + (Y(lf.Wu) + 12).toFixed(1) + " " + (X(lf.x) + 6).toFixed(1) + "," + (Y(lf.Wu) + 12).toFixed(1) + '" fill="#b45309"/>';
+      g += '<circle cx="' + X(lf.x) + '" cy="' + Y(lf.Wu) + '" r="6.5" fill="#1c1916"/>';
+      g += pill(X(lf.x) + 46, (Y(lf.p) + Y(lf.Wu)) / 2, "тот же x", "pick");
+    }
+    if (opt.gap) {
+      const gp = opt.gap;
+      g += '<line x1="' + X(gp.x) + '" y1="' + Y(gp.p) + '" x2="' + X(gp.x) + '" y2="' + Y(gp.Wu) + '" stroke="#9f1239" stroke-width="2.2"/>';
+      g += '<circle cx="' + X(gp.x) + '" cy="' + Y(gp.p) + '" r="4.5" fill="#fffdf8" stroke="#9f1239" stroke-width="1.6"/>';
+      g += pill(X(gp.x) + 50, (Y(gp.p) + Y(gp.Wu)) / 2, "δ = " + gp.delta, "pick");
+    }
+    uppers.forEach(function (u) {
+      const isAns = opt.answer && Math.abs(u[0] - opt.answer[0]) < 1e-6;
+      const isBest = opt.best && Math.abs(u[0] - opt.best[0]) < 1e-6;
+      g += '<circle cx="' + X(u[0]) + '" cy="' + Y(u[1]) + '" r="' + (isAns ? 8 : 5.5) + '" fill="' + (isAns || isBest ? "#3f6212" : "#1c1916") + '"'
+        + (isAns ? ' stroke="#1c1916" stroke-width="1.4"' : "") + "/>";
+    });
+    if (opt.answer) {
+      g += pill(X(opt.answer[0]), Y(opt.answer[1]) - 22, "ответ", "ok");
+    } else if (opt.best && !opt.lift) {
+      g += pill(X(opt.best[0]), Y(opt.best[1]) - 22, "лучшая W", "ok");
+    }
+    const usedTop = [];
+    function topY(px, wy) {
+      let yy = Y(wy) - 18;
+      usedTop.forEach(function (t) {
+        if (Math.abs(t.x - px) < 0.55 && Math.abs(t.y - yy) < 16) yy -= 18;
+      });
+      usedTop.push({ x: px, y: yy });
+      return yy;
+    }
+    if (opt.labelU) {
+      opt.labelU.forEach(function (lb) {
+        const wy = Wpair(lb.x);
+        if (opt.answer && Math.abs(lb.x - opt.answer[0]) < 1e-6) return;
+        if (opt.best && !opt.answer && !opt.lift && Math.abs(lb.x - opt.best[0]) < 1e-6) return;
+        g += pill(X(lb.x), topY(lb.x, wy), lb.text, "up");
+      });
+    }
+    if (opt.nums) {
+      opt.nums.forEach(function (n) {
+        g += '<text x="' + (X(n.x) + 8) + '" y="' + (Y(Wpair(n.x)) - 10) + '" font-size="12" font-weight="650" fill="#6b645b">' + n.text + "</text>";
+      });
+    }
+    g += '<text x="' + (w - 10) + '" y="' + (h - 8) + '" font-size="12" fill="#6b645b" text-anchor="end">x</text>';
+    g += "</g></svg>";
+    return g;
+  }
+
+  function bindWork() {
+    const fig = document.getElementById("work-fig");
+    const card = document.getElementById("work-card");
+    const side = document.getElementById("work-side");
+    const pills = document.getElementById("work-pills");
+    const cnt = document.getElementById("work-cnt");
+    const prevB = document.getElementById("rb-prev");
+    const nextB = document.getElementById("rb-next");
+    if (!fig) return;
+    function lowersOf(U) {
+      const s = U.slice().sort(function (a, b) { return a[0] - b[0]; });
+      const out = [];
+      for (let i = 0; i < s.length - 1; i++) out.push(cross(s[i][0], s[i][1], s[i + 1][0], s[i + 1][1]));
+      return out;
+    }
+    function pickOf(lows) {
+      let best = lows[0];
+      lows.forEach(function (lo) {
+        if (lo.p < best.p - 1e-12 || (Math.abs(lo.p - best.p) < 1e-12 && lo.x < best.x)) best = lo;
+      });
+      return best;
+    }
+    function grow(U) {
+      const pk = pickOf(lowersOf(U));
+      return U.concat([[pk.x, Wpair(pk.x)]]);
+    }
+    function bestOf(U) {
+      let b = U[0];
+      U.forEach(function (u) { if (u[1] < b[1] - 1e-12) b = u; });
+      return b;
+    }
+    const U0 = [[0, Wpair(0)], [4, Wpair(4)]];
+    const hist = [U0];
+    const picks = [];
+    for (let t = 0; t < 8; t++) {
+      picks.push(pickOf(lowersOf(hist[t])));
+      hist.push(grow(hist[t]));
+    }
+    const lastLo = picks[7];
+    const lastW = Wpair(lastLo.x);
+    const lastDelta = lastW - lastLo.p;
+    const answer = bestOf(hist[8]);
+    const sub = "₀₁₂₃₄₅₆₇₈₉";
+    function subn(n) {
+      return String(n).split("").map(function (d) { return sub[+d]; }).join("");
+    }
+    function nameU(x) {
+      if (Math.abs(x) < 1e-6) return "u₀";
+      if (Math.abs(x - 4) < 1e-6) return "u₁";
+      for (let i = 0; i < picks.length; i++) {
+        if (Math.abs(x - picks[i].x) < 1e-4) return "u" + subn(i + 2);
+      }
+      return "u";
+    }
+    function pocket(title, body) {
+      return "<details class='pocket'><summary><span class='pocket-title'>" + title + "</span></summary><div class='pocket-body why'>" + body + "</div></details>";
+    }
+    function pretty(x) {
+      const known = [
+        [0, "0"], [2, "2"], [4, "4"], [1, "1"], [3, "3"],
+        [7 / 6, "7/6"], [17 / 6, "17/6"],
+        [-11 / 72, "−11/72"], [61 / 72, "61/72"], [25 / 72, "25/72"],
+        [-10, "−10"], [-5, "−5"], [-1 / 2, "−1/2"], [1 / 2, "1/2"]
+      ];
+      for (let i = 0; i < known.length; i++) {
+        if (Math.abs(x - known[i][0]) < 1e-9) return known[i][1];
+      }
+      if (Math.abs(x - Math.round(x)) < 1e-9 && Math.abs(x) < 1e6) {
+        return String(Math.round(x)).replace("-", "−");
+      }
+      return fmt(x, 3);
+    }
+    function pairsOf(U) {
+      const s = U.slice().sort(function (a, b) { return a[0] - b[0]; });
+      const out = [];
+      for (let i = 0; i < s.length - 1; i++) {
+        const c = cross(s[i][0], s[i][1], s[i + 1][0], s[i + 1][1]);
+        out.push({ a: s[i], b: s[i + 1], x: c.x, p: c.p });
+      }
+      return out;
+    }
+    function explainCross(pr) {
+      const uq = pr.a[0], Wq = pr.a[1], uv = pr.b[0], Wv = pr.b[1];
+      const key = pretty(uq) + "|" + pretty(uv);
+      const extra = {
+        "0|4": "g<sub>лев</sub>(x) = 2 − 6(x − 0) = 2 − 6x<br>g<sub>прав</sub>(x) = 2 − 6(4 − x) = 6x − 22<br>2 − 6x = 6x − 22<br>24 = 12x, &nbsp; x = 2<br>p = 2 − 6 · 2 = −10",
+        "0|2": "x = (2 − 0) / 12 + (0 + 2) / 2 = 2/12 + 1 = 7/6<br>p = 2 − 6 · (7/6 − 0) = 2 − 7 = −5",
+        "2|4": "x = (0 − 2) / 12 + (2 + 4) / 2 = −2/12 + 3 = 17/6<br>p = 0 − 6 · (17/6 − 2) = −6 · (5/6) = −5",
+        "0|7/6": "x = (2 − (−11/72)) / 12 + (0 + 7/6) / 2<br>= (155/72) / 12 + 7/12 = 155/864 + 504/864 = 659/864 ≈ 0.763<br>p = 2 − 6 · (659/864) = 2 − 659/144 = −371/144 ≈ −2.576",
+        "7/6|2": "x = (−11/72 − 0) / 12 + (7/6 + 2) / 2<br>= −11/864 + 19/12 = −11/864 + 1368/864 = 1357/864 ≈ 1.571<br>p = −11/72 − 6 · (1357/864 − 7/6) = −371/144 ≈ −2.576",
+        "2|17/6": "x = (0 − 61/72) / 12 + (2 + 17/6) / 2<br>= −61/864 + 29/12 = −61/864 + 2088/864 = 2027/864 ≈ 2.346<br>p = 0 − 6 · (2027/864 − 2) = −299/144 ≈ −2.076",
+        "17/6|4": "x = (61/72 − 2) / 12 + (17/6 + 4) / 2<br>= (−83/72) / 12 + 41/12 = −83/864 + 2952/864 = 2869/864 ≈ 3.321<br>p = 61/72 − 6 · (2869/864 − 17/6) = −299/144 ≈ −2.076",
+        "7/6|1.571": "x = (−11/72 − (−0.883)) / 12 + (7/6 + 1.571) / 2<br>= 0.730 / 12 + 1.369 = 0.061 + 1.369 = 1.430<br>p = −11/72 − 6 · (1.430 − 7/6) ≈ −1.730"
+      };
+      let h = "<p>W<sub>лев</sub> и W<sub>прав</sub> берём из таблицы верхних. 2L = 12.</p>";
+      h += "<p class='eq'>u<sub>лев</sub> = " + pretty(uq) + ", W<sub>лев</sub> = " + pretty(Wq) + "<br>";
+      h += "u<sub>прав</sub> = " + pretty(uv) + ", W<sub>прав</sub> = " + pretty(Wv) + "</p>";
+      if (extra[key]) h += "<p class='eq'>" + extra[key] + "</p>";
+      else {
+        h += "<p class='eq'>x = (" + pretty(Wq) + " − " + pretty(Wv) + ") / 12 + (" + pretty(uq) + " + " + pretty(uv) + ") / 2 = " + pretty(pr.x) + "<br>";
+        h += "p = " + pretty(Wq) + " − 6(" + pretty(pr.x) + " − " + pretty(uq) + ") = " + pretty(pr.p) + "</p>";
+      }
+      return h;
+    }
+    function explainW(x) {
+      if (Math.abs(x) < 1e-9) return "W(0) = ½(0 − 2)² + sin 0 = ½ · 4 + 0 = 2";
+      if (Math.abs(x - 4) < 1e-9) return "W(4) = ½(4 − 2)² + sin 4π = ½ · 4 + 0 = 2";
+      if (Math.abs(x - 2) < 1e-9) return "W(2) = ½(2 − 2)² + sin 2π = 0 + 0 = 0";
+      if (Math.abs(x - 7 / 6) < 1e-9) {
+        return "7/6 − 2 = −5/6<br>½(5/6)² = 25/72<br>sin(7π/6) = −1/2 = −36/72<br>W = 25/72 − 36/72 = −11/72 ≈ −0.153";
+      }
+      if (Math.abs(x - 17 / 6) < 1e-9) {
+        return "17/6 − 2 = 5/6<br>½(5/6)² = 25/72<br>sin(17π/6) = sin(5π/6) = 1/2 = 36/72<br>W = 25/72 + 36/72 = 61/72 ≈ 0.847";
+      }
+      const Wu = Wpair(x);
+      const d = x - 2;
+      return "W(" + pretty(x) + ") = ½(" + pretty(x) + " − 2)² + sin(π · " + pretty(x) + ")<br>= ½ · " + fmt(d * d, 3) + " + " + fmt(Math.sin(Math.PI * x), 3) + " = " + pretty(Wu);
+    }
+
+    const steps = [
+      {
+        name: "Концы",
+        uppers: hist[0],
+        bare: true,
+        title: "Сначала только концы",
+        body: "Первые пробы на концах. Считаем W подстановкой. Эти два числа потом пойдут в формулу пересечения.",
+        eq: "W(0) = ½(0 − 2)² + sin 0 = ½ · 4 + 0 = 2<br>W(4) = ½(4 − 2)² + sin 4π = ½ · 4 + 0 = 2",
+        more: "Концы на одной высоте. L = 6, поэтому 2L = 12. ε = 1. Ломаную ещё не собирали."
+      },
+      {
+        name: "Пересечение",
+        uppers: hist[0],
+        rays: true,
+        showPick: true,
+        derive: true,
+        title: "Два луча встречаются в угле",
+        body: "Из каждой чёрной точки вниз идёт прямая со склоном L. Слева направо склон −L. Справа налево склон +L. Угол ломаной, где эти прямые пересеклись.",
+        extra: "<div class='why'>" +
+          "<p class='k'>1. Два луча буквами</p>" +
+          "<p>Левая уже посчитанная точка: u<sub>лев</sub>, высота W<sub>лев</sub>. Правая: u<sub>прав</sub>, W<sub>прав</sub>. Пока не подставляем числа.</p>" +
+          "<p class='eq'>g<sub>лев</sub>(x) = W<sub>лев</sub> − L (x − u<sub>лев</sub>)</p>" +
+          "<p class='eq'>g<sub>прав</sub>(x) = W<sub>прав</sub> − L (u<sub>прав</sub> − x)</p>" +
+          "<p class='k'>2. В угле высоты равны</p>" +
+          "<p class='eq'>W<sub>лев</sub> − L(x − u<sub>лев</sub>) = W<sub>прав</sub> − L(u<sub>прав</sub> − x)</p>" +
+          "<p class='k'>3. Раскрываем скобки</p>" +
+          "<p class='eq'>W<sub>лев</sub> − Lx + L u<sub>лев</sub> = W<sub>прав</sub> − L u<sub>прав</sub> + Lx</p>" +
+          "<p class='k'>4. Все x влево</p>" +
+          "<p class='eq'>W<sub>лев</sub> + L u<sub>лев</sub> + L u<sub>прав</sub> − W<sub>прав</sub> = 2Lx</p>" +
+          "<p class='eq'>x = (W<sub>лев</sub> − W<sub>прав</sub>) / (2L) + (u<sub>лев</sub> + u<sub>прав</sub>) / 2</p>" +
+          "<p>Высота угла, тот же левый луч в этой x:</p>" +
+          "<p class='eq'>p = W<sub>лев</sub> − L (x − u<sub>лев</sub>)</p>" +
+          "<p>В конспекте вместо лев и прав пишут q и v. Это те же два конца интервала.</p>" +
+          "</div>" +
+          pocket("Подробнее: почему в знаменателе 2L",
+            "<p>Левый луч теряет высоту, склон −L. Правый набирает, склон +L. При переносе x получается Lx + Lx = 2Lx. У нас L = 6, поэтому 2L = 12.</p>" +
+            "<p>Из Липшица |W<sub>лев</sub> − W<sub>прав</sub>| ≤ L|u<sub>прав</sub> − u<sub>лев</sub>|. Тогда сдвиг |(W<sub>лев</sub> − W<sub>прав</sub>)/(2L)| не больше половины длины. Если угол вылез из отрезка, L слишком маленькая.</p>")
+      },
+      {
+        name: "u₂ = 2",
+        uppers: hist[0],
+        showPick: true,
+        liftLo: picks[0],
+        title: "Проба u₂ = 2. Считаем W и зазор",
+        body: "В x из таблицы углов посчитали W. Попали на горб между ямами, не в минимум. Для грубой ломаной так и бывает.",
+        eq: "W(2) = ½(2 − 2)² + sin 2π = 0 + 0 = 0<br>δ = W − p = 0 − (−10) = 10 ≥ 1",
+        more: "Рано останавливаться. Нижняя стала верхней. Дальше пересечения считаем заново из новой таблицы верхних."
+      },
+      {
+        name: "Два угла",
+        uppers: hist[1],
+        showPick: true,
+        title: "Два новых угла, ничья p = −5",
+        body: "Старый угол исчез. Два интервала, две строки в таблице. Числа только из текущих верхних: 0, 2 и 4.",
+        eq: "слева [0, 2]: x = (2 − 0) / 12 + (0 + 2) / 2 = 1/6 + 1 = 7/6<br>p = 2 − 6 · (7/6) = 2 − 7 = −5<br>справа [2, 4]: x = (0 − 2) / 12 + (2 + 4) / 2 = −1/6 + 3 = 17/6<br>p = 0 − 6 · (17/6 − 2) = −5",
+        more: "Ничья по p. Правило: левая, x = 7/6. Правый угол рисуем, W там не считаем.",
+        extra: pocket("Подробнее: почему не посередине [0, 2]",
+          "<p>Середина [0, 2] была бы x = 1. Сдвиг (W<sub>q</sub> − W<sub>v</sub>)/12 = (2 − 0)/12 = 1/6. Нижняя уехала к более высокому концу.</p>" +
+          "<p>Крутой склон быстрее догоняет низкий. Справа то же зеркально.</p>")
+      },
+      {
+        name: "u₃ = 7/6",
+        uppers: hist[1],
+        showPick: true,
+        liftLo: picks[1],
+        title: "Проба u₃ = 7/6. Склон левой ямы",
+        body: "В таблице выбрали левую строку, p = −5. Считаем W подстановкой. Это ещё склон, не дно.",
+        eq: "7/6 − 2 = −5/6<br>½(5/6)² = 25/72<br>sin(7π/6) = −1/2 = −36/72<br>W = 25/72 − 36/72 = −11/72 ≈ −0.153",
+        eq2: "δ = −11/72 − (−5) = −11/72 + 360/72 = 349/72 ≈ 4.847 ≥ 1",
+        more: "Рано стоп. −11/72 пойдёт в таблицу верхних. На следующем шаге из неё посчитаем новые углы."
+      },
+      {
+        name: "u₄ = 17/6",
+        uppers: hist[2],
+        showPick: true,
+        liftLo: picks[2],
+        title: "Проба u₄ = 17/6. Холм справа",
+        body: "После u₃ в таблице три строки. Новые слева p ≈ −2.576, старая правая p = −5. Берём самую глубокую, 17/6.",
+        eq: "17/6 − 2 = 5/6<br>½(5/6)² = 25/72<br>sin(17π/6) = sin(5π/6) = 1/2 = 36/72<br>W = 25/72 + 36/72 = 61/72 ≈ 0.847",
+        eq2: "δ = 61/72 − (−5) = 61/72 + 360/72 = 421/72 ≈ 5.847 ≥ 1",
+        more: "W хуже уже известной −11/72. Пробу всё равно надо: иначе карман p = −5 так и казался бы самым глубоким."
+      },
+      {
+        name: "u₅ ≈ 0.76",
+        uppers: hist[3],
+        showPick: true,
+        liftLo: picks[3],
+        title: "Проба u₅. Левый холм",
+        body: "Четыре строки. Две слева p ≈ −2.576, две справа −2.076. Берём левую из более глубокой пары. Соседи из таблицы: 0 и 7/6.",
+        eq: "x = (2 − (−11/72)) / 12 + (0 + 7/6) / 2<br>= (155/72) / 12 + 7/12 = 155/864 + 504/864 = 659/864 ≈ 0.763<br>p = 2 − 6 · (659/864) = −371/144 ≈ −2.576",
+        eq2: "W(0.763) = ½(0.763 − 2)² + sin(0.763π) ≈ 1.444<br>δ = 1.444 − (−2.576) ≈ 4.020 ≥ 1",
+        more: "Холм, яму не улучшил. Правая строка с тем же p ещё в таблице, x ≈ 1.571."
+      },
+      {
+        name: "u₆ ≈ 1.57",
+        uppers: hist[4],
+        showPick: true,
+        liftLo: picks[4],
+        best: bestOf(hist[5]),
+        title: "Проба u₆. Дно левой ямы",
+        body: "Та же глубина p ≈ −2.576, левая из оставшихся. Соседи 7/6 и 2, числа из таблицы верхних.",
+        eq: "x = (−11/72 − 0) / 12 + (7/6 + 2) / 2<br>= −11/864 + 19/12 = −11/864 + 1368/864 = 1357/864 ≈ 1.571<br>p = −11/72 − 6 · (1357/864 − 7/6) = −371/144 ≈ −2.576",
+        eq2: "W(1.571) = ½(1.571 − 2)² + sin(1.571π) ≈ −0.883<br>δ = −0.883 − (−2.576) ≈ 1.693 ≥ 1",
+        more: "Лучшая верхняя уже здесь, рядом с истинным −0.887. Справа в таблице p ≈ −2.076, глубже чем будет после этой пробы слева. Идём проверять правую яму.",
+        extra: pocket("Подробнее: p тем же числом, что у u₅",
+          "<p>Интервалы [0, 7/6] и [7/6, 2] симметричны по высоте концов относительно L. Поэтому p одинаковый, −371/144. На ничьей брали левый, теперь остался правый.</p>" +
+          "<p>В коде float, на бумаге трёх знаков хватает.</p>")
+      },
+      {
+        name: "u₇ ≈ 2.35",
+        uppers: hist[5],
+        showPick: true,
+        liftLo: picks[5],
+        best: bestOf(hist[5]),
+        title: "Проба u₇. Правый холм",
+        body: "Самые глубокие теперь справа, p ≈ −2.076. Левая из этой пары. Соседи 2 и 17/6.",
+        eq: "x = (0 − 61/72) / 12 + (2 + 17/6) / 2<br>= −61/864 + 29/12 = −61/864 + 2088/864 = 2027/864 ≈ 2.346<br>p = 0 − 6 · (2027/864 − 2) = −299/144 ≈ −2.076",
+        eq2: "W(2.346) = ½(2.346 − 2)² + sin(2.346π) ≈ 0.945<br>δ = 0.945 − (−2.076) ≈ 3.022 ≥ 1",
+        more: "Холм. Лучшая W по-прежнему −0.883 слева. Правая строка той же пары ещё в таблице, x ≈ 3.321."
+      },
+      {
+        name: "u₈ ≈ 3.32",
+        uppers: hist[6],
+        showPick: true,
+        liftLo: picks[6],
+        best: bestOf(hist[6]),
+        title: "Проба u₈. Дно правой ямы",
+        body: "Последняя строка с p ≈ −2.076. Соседи 17/6 и 4.",
+        eq: "x = (61/72 − 2) / 12 + (17/6 + 4) / 2<br>= (−83/72) / 12 + 41/12 = −83/864 + 2952/864 = 2869/864 ≈ 3.321<br>p = 61/72 − 6 · (2869/864 − 17/6) = −299/144 ≈ −2.076",
+        eq2: "W(3.321) = ½(3.321 − 2)² + sin(3.321π) ≈ 0.027<br>δ = 0.027 − (−2.076) ≈ 2.103 ≥ 1",
+        more: "Мелкая яма: лучше холма, хуже −0.883. Глобальной не стала. Локальный спуск справа остался бы здесь. Самые глубокие углы снова слева."
+      },
+      {
+        name: "Стоп",
+        uppers: hist[8],
+        hideLowers: true,
+        gap: { x: lastLo.x, p: lastLo.p, Wu: lastW, delta: fmt(lastDelta, 3) },
+        answer: answer,
+        title: "Стоп: зазор меньше ε. Какую точку берём",
+        body: "Последняя проба, левая из пары p ≈ −1.730. Соседи 7/6 и 1.571, обе уже в таблице верхних.",
+        eq: "x = (−11/72 − (−0.883)) / 12 + (7/6 + 1.571) / 2 ≈ 1.430<br>p ≈ −1.730<br>W(1.430) = ½(1.430 − 2)² + sin(1.430π) ≈ −0.813",
+        eq2: "δ = −0.813 − (−1.730) = 0.917 &lt; 1",
+        more: "Стоп. Ответ не угол ломаной и не обязательно последняя проба. Берём лучшую уже посчитанную W: u₆ ≈ 1.571, W ≈ −0.883. Истинный минимум около 1.546 и −0.887. Поймать надо с зазором ε, не точкой.",
+        extra: pocket("Подробнее: две записи ответа и весь путь",
+          "<p>Конспект пишет последнюю пробу: 1.430 и −0.813. Для сдачи удобнее лучшая верхняя. Тот же ε-ответ, ближе к истине.</p>" +
+          "<p>Порядок проб: концы 0 и 4, горб 2, склон 7/6, холм 17/6, холм 0.76, дно левой ямы 1.57, холм 2.35, дно правой 3.32, стоп 1.43 рядом с лучшей.</p>" +
+          "<p>Холмы 5 и 7 тоже пришлось измерить. Иначе нижние там оставались глубокими.</p>" +
+          "<p>Зазор всегда W минус высота той нижней, которую только что измерили. Нумерация p<sub>k−2</sub> в слайдах плывёт из-за стартовых итераций 0 и 1.</p>")
+      }
+    ];
+
+    let k = 0;
+    let look = null;
+    if (pills) {
+      pills.innerHTML = steps.map(function (s, i) {
+        return "<button type='button' data-work-k='" + i + "'>" + (i + 1) + ". " + s.name + "</button>";
+      }).join("");
+    }
+
+    function paint() {
+      const s = steps[k];
+      const U = s.uppers.slice().sort(function (a, b) { return a[0] - b[0]; });
+      const lows = (s.bare || s.hideLowers) ? [] : lowersOf(U);
+      const pk = lows.length ? pickOf(lows) : null;
+      const pickX = pk && s.showPick ? pk.x : null;
+      let labelU = [];
+      if (U.length <= 4) {
+        labelU = U.map(function (u) { return { x: u[0], text: nameU(u[0]) }; });
+      }
+      if (s.liftLo) labelU.push({ x: s.liftLo.x, text: nameU(s.liftLo.x) });
+      fig.innerHTML = svgWork({
+        uppers: U,
+        lowers: lows,
+        pick: pickX,
+        look: look,
+        bare: !!s.bare,
+        rays: !!s.rays,
+        lift: s.liftLo ? { x: s.liftLo.x, p: s.liftLo.p, Wu: Wpair(s.liftLo.x) } : null,
+        gap: s.gap || null,
+        answer: s.answer || null,
+        best: s.best || null,
+        labelU: labelU
+      });
+      let cardH = "<h3>" + s.title + "</h3><p>" + s.body + "</p>";
+      if (s.eq) cardH += "<p class='eq'>" + s.eq + "</p>";
+      if (s.eq2) cardH += "<p class='eq'>" + s.eq2 + "</p>";
+      if (s.more) cardH += "<p>" + s.more + "</p>";
+      if (s.extra) cardH += s.extra;
+      card.innerHTML = cardH;
+
+      const pairs = (s.bare || s.hideLowers) ? [] : pairsOf(U);
+      function uppersBlock() {
+        let h = "<h3>Верхние, из них считаем</h3>";
+        h += "<table class='sx tiny'><thead><tr><th>точка</th><th>x</th><th>W</th></tr></thead><tbody>";
+        U.slice().sort(function (a, b) { return a[0] - b[0]; }).forEach(function (u) {
+          const isAns = (s.answer && Math.abs(u[0] - s.answer[0]) < 1e-6) || (s.best && Math.abs(u[0] - s.best[0]) < 1e-6);
+          h += "<tr><td class='" + (isAns ? "best" : "up") + "'>" + nameU(u[0]) + "</td>";
+          h += "<td class='" + (isAns ? "best" : "up") + "'>" + pretty(u[0]) + "</td>";
+          h += "<td class='" + (isAns ? "best" : "up") + "'>" + pretty(u[1]) + "</td></tr>";
+        });
+        h += "</tbody></table>";
+        return h;
+      }
+      function cornersBlock() {
+        if (!pairs.length) return "";
+        let h = "<h3>Углы из соседних верхних</h3>";
+        if (!s.derive) {
+          h += "<p class='eq' style='margin:0 0 8px'>x = (W<sub>лев</sub> − W<sub>прав</sub>) / 12 + (u<sub>лев</sub> + u<sub>прав</sub>) / 2<br>p = W<sub>лев</sub> − 6(x − u<sub>лев</sub>)</p>";
+          h += "<p class='note' style='margin:0 0 8px'>Строка, интервал. W слева и справа из таблицы выше. Берём меньшее p, на ничьей левую.</p>";
+        } else {
+          h += "<p class='note' style='margin:0 0 8px'>Один интервал, одна строка. Разбор лучей в блоке выше.</p>";
+        }
+        h += "<table class='sx tiny'><thead><tr><th>интервал</th><th>x</th><th>p</th><th></th></tr></thead><tbody>";
+        pairs.forEach(function (pr, i) {
+          const isPick = pickX != null && Math.abs(pr.x - pickX) < 1e-6;
+          const isLook = look === i;
+          h += "<tr data-lo='" + i + "'" + (isPick ? " class='pick'" : "") + ">";
+          h += "<td class='" + (isPick ? "pick" : "") + "'>" + pretty(pr.a[0]) + " … " + pretty(pr.b[0]) + "</td>";
+          h += "<td class='" + (isPick ? "pick" : "") + "'>" + pretty(pr.x) + "</td>";
+          h += "<td class='" + (isPick ? "pick" : "") + "'>" + pretty(pr.p) + "</td>";
+          h += "<td><button type='button' data-lo='" + i + "'>" + (isLook ? "выбран" : "выбрать") + "</button></td></tr>";
+        });
+        h += "</tbody></table>";
+        return h;
+      }
+      let sideH = "";
+      if (s.answer) {
+        sideH = "<h3>Какую точку берём</h3>";
+        sideH += "<p class='eq' style='margin:0 0 8px'>δ = " + fmt(lastDelta, 3) + " &lt; ε = 1</p>";
+        sideH += uppersBlock();
+        sideH += "<p class='note'>Сверху по x. Ниже те же точки по возрастанию W, отсюда ответ.</p>";
+        sideH += "<table class='sx tiny' style='margin-top:8px'><thead><tr><th>точка</th><th>W</th></tr></thead><tbody>";
+        U.slice().sort(function (a, b) { return a[1] - b[1]; }).forEach(function (u) {
+          const isAns = Math.abs(u[0] - s.answer[0]) < 1e-6;
+          sideH += "<tr><td class='" + (isAns ? "best" : "up") + "'>" + nameU(u[0]) + ", x = " + pretty(u[0]) + "</td>";
+          sideH += "<td class='" + (isAns ? "best" : "") + "'>" + pretty(u[1]) + (isAns ? " · ответ" : "") + "</td></tr>";
+        });
+        sideH += "</tbody></table>";
+        const lastPr = pairsOf(hist[7]).filter(function (pr) { return Math.abs(pr.x - lastLo.x) < 1e-6; })[0];
+        sideH += "<div class='work-sheet'><p class='k'>Последний угол, из него стоп</p>";
+        if (lastPr) sideH += explainCross(lastPr);
+        sideH += "<p class='eq'>" + explainW(lastLo.x) + "</p>";
+        sideH += "<p class='eq'>δ = " + pretty(lastW) + " − (" + pretty(lastLo.p) + ") = " + fmt(lastDelta, 3) + " &lt; 1</p></div>";
+        sideH += "<div class='work-mini'>";
+        const order = [0, 4].concat(picks.map(function (p) { return p.x; }));
+        order.forEach(function (x, i) {
+          const cls = Math.abs(x - s.answer[0]) < 1e-4 ? "on" : (i === order.length - 1 ? "last" : "");
+          sideH += "<span class='" + cls + "'>" + i + "</span>";
+        });
+        sideH += "</div>";
+        sideH += "<p class='note'>Зелёное, ответ. Рыжее, последняя проба. Номера, порядок проб.</p>";
+      } else if (s.bare) {
+        sideH = uppersBlock();
+        sideH += "<p class='note'>Нижнего угла пока нет. Он появится из этих двух W по формуле пересечения.</p>";
+      } else if (s.derive) {
+        sideH = uppersBlock();
+        sideH += "<p class='note'>Левая строка, это u<sub>лев</sub>. Правая, u<sub>прав</sub>. L = 6 берём отдельно, не из таблицы.</p>";
+        sideH += "<div class='work-sheet'>";
+        sideH += "<p class='k'>Те же два луча на наших числах</p>";
+        sideH += "<p>Левая точка 0, W = 2. Идём вправо, склон −6.</p>";
+        sideH += "<p class='eq'>g<sub>лев</sub>(x) = 2 − 6(x − 0) = 2 − 6x</p>";
+        sideH += "<p>Правая точка 4, W = 2. Идём влево, склон +6.</p>";
+        sideH += "<p class='eq'>g<sub>прав</sub>(x) = 2 − 6(4 − x) = 2 − 24 + 6x = 6x − 22</p>";
+        sideH += "<p>В угле высоты равны.</p>";
+        sideH += "<p class='eq'>2 − 6x = 6x − 22<br>2 + 22 = 6x + 6x<br>24 = 12x<br>x = 2</p>";
+        sideH += "<p class='eq'>p = g<sub>лев</sub>(2) = 2 − 6 · 2 = −10</p>";
+        sideH += "<p>W слева и справа одинаковые, поэтому x посередине отрезка.</p>";
+        sideH += "</div>";
+        sideH += cornersBlock();
+      } else {
+        sideH = uppersBlock();
+        sideH += cornersBlock();
+        if (s.liftLo) {
+          const lf = s.liftLo;
+          const Wu = Wpair(lf.x);
+          const del = Wu - lf.p;
+          const pr = pairs.filter(function (row) { return Math.abs(row.x - lf.x) < 1e-6; })[0];
+          sideH += "<div class='work-sheet'><p class='k'>Эта проба, подстановка</p>";
+          if (pr) sideH += explainCross(pr);
+          sideH += "<p class='eq'>" + explainW(lf.x) + "</p>";
+          sideH += "<p class='eq'>δ = " + pretty(Wu) + " − (" + pretty(lf.p) + ") = " + pretty(del) + (del < EPS ? " &lt; 1" : " ≥ 1") + "</p></div>";
+        }
+        if (look != null && pairs[look]) {
+          const pr = pairs[look];
+          const isPick = pickX != null && Math.abs(pr.x - pickX) < 1e-6;
+          sideH += "<div class='work-sheet'><p class='k'>" + (isPick ? "Да, эта строка. Самое маленькое p." : "Нет. p больше, чем у самой глубокой строки.") + "</p>";
+          if (!s.liftLo || Math.abs(pr.x - s.liftLo.x) > 1e-6) sideH += explainCross(pr);
+          else sideH += "<p class='note' style='margin:0'>Разбор этой строки уже в блоке выше.</p>";
+          sideH += "</div>";
+        } else if (!s.liftLo) {
+          sideH += "<p class='note'>Нажмите «выбрать» у строки. Появится подстановка из верхних этой строки.</p>";
+        }
+      }
+      side.innerHTML = sideH;
+      if (cnt) cnt.textContent = (k + 1) + " / " + steps.length;
+      if (prevB) prevB.disabled = k === 0;
+      if (nextB) nextB.disabled = k === steps.length - 1;
+      if (pills) {
+        pills.querySelectorAll("button").forEach(function (b) {
+          b.classList.toggle("on", +b.getAttribute("data-work-k") === k);
+        });
+      }
+      fig.querySelectorAll("[data-lo]").forEach(function (el) {
+        el.addEventListener("click", function (e) {
+          e.preventDefault();
+          look = +el.getAttribute("data-lo");
+          paint();
+        });
+      });
+      side.querySelectorAll("[data-lo]").forEach(function (el) {
+        el.addEventListener("click", function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+          look = +el.getAttribute("data-lo");
+          paint();
+        });
+      });
+    }
+    function go(nk) {
+      k = nk;
+      look = null;
+      paint();
+    }
+    if (prevB) prevB.onclick = function () { if (k > 0) go(k - 1); };
+    if (nextB) nextB.onclick = function () { if (k < steps.length - 1) go(k + 1); };
+    if (pills) {
+      pills.addEventListener("click", function (e) {
+        const b = e.target.closest("button[data-work-k]");
+        if (!b) return;
+        go(+b.getAttribute("data-work-k"));
+      });
+    }
+    paint();
+  }
+
+  let i = 0;
+  const main = document.getElementById("main");
+  const toc = document.getElementById("toc");
+  const phase = document.getElementById("phase");
+  const counter = document.getElementById("counter");
+  const bar = document.getElementById("bar");
+  const prev = document.getElementById("prev");
+  const next = document.getElementById("next");
+
+  toc.innerHTML = "<h2>Ход практики</h2>" + slides.map(function (s, k) {
+    return "<button type='button' data-i='" + k + "'><span class='n'>" + (k + 1) + "</span>" + s.toc + "</button>";
+  }).join("");
+
+  function render() {
+    const s = slides[i];
+    phase.textContent = s.phase;
+    counter.textContent = (i + 1) + " / " + slides.length;
+    bar.style.width = ((i + 1) / slides.length * 100) + "%";
+    prev.disabled = i === 0;
+    next.disabled = i === slides.length - 1;
+    toc.querySelectorAll("button").forEach(function (b, k) {
+      b.classList.toggle("active", k === i);
+    });
+    document.querySelector(".stage").classList.toggle("wide-slide", !!s.wide);
+    main.innerHTML = "<div class='slide" + (s.wide ? " wide" : "") +
+      (s.id === "plan" || s.id === "life" || s.id === "idea" || s.id === "work" || s.id === "caveats" ? " geom-slide" : "") +
+      (s.id === "work" ? " work-slide" : "") +
+      (s.id === "hw" ? " hw-slide" : "") +
+      "'><h1>" + s.title + "</h1><p class='lead'>" + s.lead + "</p>" + (s.html || "") + "</div>";
+    if (s.onEnter) s.onEnter();
+  }
+
+  prev.onclick = function () { if (i > 0) { i--; render(); } };
+  next.onclick = function () { if (i < slides.length - 1) { i++; render(); } };
+  toc.addEventListener("click", function (e) {
+    const b = e.target.closest("button[data-i]");
+    if (!b) return;
+    i = +b.getAttribute("data-i");
+    render();
+  });
+  document.addEventListener("keydown", function (e) {
+    if (e.target.closest("details, summary") && (e.key === " " || e.key === "Enter")) return;
+    if (e.target.closest("input, textarea, button.nav-btn")) return;
+    const rbNext = document.getElementById("rb-next");
+    const rbPrev = document.getElementById("rb-prev");
+    if (rbNext && (e.key === "ArrowRight" || e.key === "PageDown" || e.key === " ")) {
+      e.preventDefault();
+      if (!rbNext.disabled) { rbNext.click(); return; }
+      if (i < slides.length - 1) { i++; render(); }
+      return;
+    }
+    if (rbPrev && (e.key === "ArrowLeft" || e.key === "PageUp")) {
+      e.preventDefault();
+      if (!rbPrev.disabled) { rbPrev.click(); return; }
+      if (i > 0) { i--; render(); }
+      return;
+    }
+    if (e.key === "ArrowRight" || e.key === "PageDown" || e.key === " ") {
+      e.preventDefault();
+      if (i < slides.length - 1) { i++; render(); }
+    }
+    if (e.key === "ArrowLeft" || e.key === "PageUp") {
+      e.preventDefault();
+      if (i > 0) { i--; render(); }
+    }
+    if (e.key === "Home") { i = 0; render(); }
+    if (e.key === "End") { i = slides.length - 1; render(); }
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>
