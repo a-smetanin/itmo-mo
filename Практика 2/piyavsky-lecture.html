@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Метод ломаных · разбор примера</title>
+  <title>Метод ломаных · глобальная минимизация на отрезке</title>
   <style>
     :root {
       --bg: #f4efe6;
@@ -604,7 +604,7 @@
 <body>
   <div class="app">
     <header>
-      <div class="brand">Метод ломаных <span>· практика</span></div>
+      <div class="brand">Метод ломаных <span>· практика 2</span></div>
       <div class="phase" id="phase">Постановка</div>
       <div class="progress"><i id="bar"></i></div>
       <div class="counter" id="counter">1 / 1</div>
@@ -771,8 +771,8 @@
       id: "plan",
       phase: "План практики",
       toc: "План на пару",
-      title: "Метод ломаных ищет глобальный экстремум",
-      lead: "На отрезке у функции несколько ям и холмов. Нужна самая глубокая точка, не та, в которую скатились первыми.",
+      title: "Метод ломаных для глобальной минимизации на отрезке",
+      lead: "Дана функция W на компактном отрезке [a, b]. Требуется найти глобальный минимум: точку, в которой W принимает наименьшее значение на всём отрезке.",
       wide: true,
       html: `
         <div class="geom-layout">
@@ -781,26 +781,27 @@
             <div class="geom-legend">
               <span><i class="sw" style="background:#3f6212"></i>глобальный минимум</span>
               <span><i class="sw" style="background:#1f4d63"></i>глобальный максимум</span>
-              <span><i class="sw" style="background:#b45309"></i>локальные, не те</span>
+              <span><i class="sw" style="background:#b45309"></i>локальные экстремумы</span>
             </div>
           </div>
           <div class="geom-story">
             <div class="card">
-              <h3>Какая задача</h3>
-              <p>Найти экстремумы функции на отрезке. Сегодня ищем глобальный минимум: самую нижнюю точку на всей картинке слева.</p>
+              <h3>Задача</h3>
+              <p class="eq">найти &nbsp; x<sub>*</sub> ∈ Arg min<sub>x ∈ [a, b]</sub> W(x)</p>
+              <p>W предполагается липшицевой. Локальных минимумов может быть несколько. Искомая точка, та, где значение W наименьшее на всём [a, b], не в окрестности старта.</p>
             </div>
             <div class="card">
-              <h3>Почему не обычный спуск</h3>
-              <p>Если начать справа и идти только вниз по склону, скатитесь в мелкую яму и остановитесь. Слева есть яма глубже, но обычный спуск про неё не знает.</p>
+              <h3>Почему локального спуска недостаточно</h3>
+              <p>Методы первого порядка используют только окрестность текущей точки и сходятся к стационарной точке в этой окрестности. Справа на рисунке есть локальный минимум. Старт в его бассейне не даёт информации о более глубоком минимуме слева.</p>
             </div>
           </div>
         </div>
         <div class="card" style="margin-top:16px">
-          <h3>Как пройдёт пара</h3>
+          <h3>План пары</h3>
           <ol class="steps" style="margin-top:8px">
-            <li><span class="num">1</span><div>Разберём задачу на одной функции и посмотрим, когда метод вообще можно применять</div></li>
-            <li><span class="num">2</span><div>Как устроена ломаная и как она шагает к минимуму</div></li>
-            <li><span class="num">3</span><div>Посчитаем пример до ответа, где метод ломается, что сдавать</div></li>
+            <li><span class="num">1</span><div>Постановка на конкретной W. Условие Липшица и область применимости метода</div></li>
+            <li><span class="num">2</span><div>Правило шага: галочки, пересечения, выбор пробы, критерий останова</div></li>
+            <li><span class="num">3</span><div>Численный расчёт до ε-приближения, выбор константы L, требования к программе</div></li>
           </ol>
           <p class="note">Конспект: <a href="Метод%20Пиявского.pdf">Метод Пиявского.pdf</a>. Задание: <a href="Тема №2.pdf">Тема №2.pdf</a>.</p>
         </div>
@@ -965,7 +966,7 @@
         <div class="rebuild-nav">
           <button class="nav-btn" id="rb-prev" type="button">←</button>
           <button class="nav-btn" id="rb-next" type="button">→</button>
-          <span class="cnt" id="work-cnt">1 / 11</span>
+          <span class="cnt" id="work-cnt">1 / 12</span>
           <span class="hint">стрелки сначала листают шаги расчёта</span>
         </div>
         <div class="idea-pills" id="work-pills"></div>
@@ -989,40 +990,82 @@
       id: "caveats",
       phase: "Практическое задание",
       toc: "Какое L брать",
-      title: "Какое L брать",
-      lead: "Та же W и те же уже посчитанные точки. Меняется только L. Смотрите, остаётся ломаная под графиком или протыкает его.",
+      title: "Как выбрать константу L",
+      lead: "L берут один раз, до расчёта, из крутизны W. В итерациях её не крутят. Картинка справа, проверка: что будет, если взять не то число.",
       wide: true,
       html: `
-        <div class="seg" id="cave-seg">
-          <button type="button" data-cave="low">L = 3, мало</button>
-          <button type="button" data-cave="ok" class="on">L = 6, наша</button>
-          <button type="button" data-cave="high">L = 16, с запасом</button>
+        <div class="seg" id="cave-tab">
+          <button type="button" data-cave-tab="how" class="on">1. Как выбрать</button>
+          <button type="button" data-cave-tab="wrong">2. Если L не та</button>
         </div>
-        <div class="geom-layout">
-          <div>
-            <div class="fig" id="cave-fig"></div>
-            <div class="geom-legend">
-              <span><i class="sw" style="background:#1c1916"></i>график W</span>
-              <span><i class="sw" style="background:#3f6212"></i>ломаная под графиком</span>
-              <span><i class="sw" style="background:#9f1239"></i>ломаная проткнула</span>
-              <span><i class="sw" style="background:#1c1916;border-radius:99px"></i>уже есть W</span>
-            </div>
-          </div>
-          <div class="geom-story">
-            <div class="card">
-              <h3>Покрутите L</h3>
-              <div class="range-row">
-                <span>L</span>
-                <input type="range" id="cave-L" min="2" max="18" step="0.1" value="6" />
-                <span id="cave-Lval">6.0</span>
+        <div data-cave-panel="how">
+          <div class="geom-layout">
+            <div>
+              <div class="fig" id="cave-how-fig"></div>
+              <div class="geom-legend">
+                <span><i class="sw" style="background:#1c1916"></i>график W</span>
+                <span><i class="sw" style="background:#e4eef2;border:1px solid #1f4d63"></i>конус ±L в самой крутой точке</span>
               </div>
-              <p class="eq" id="cave-check" style="margin-top:12px"></p>
-              <p class="note" id="cave-msg"></p>
             </div>
-            <div class="card" id="cave-story"></div>
+            <div class="geom-story">
+              <div class="card">
+                <h3>Правило, на бумаге и в коде</h3>
+                <ol class="steps">
+                  <li><span class="num">1</span><div>Если есть W′, найти max |W′| на [a, b]. Это самая большая крутизна графика.</div></li>
+                  <li><span class="num">2</span><div>Взять L чуть больше этого максимума. Запас написать явно.</div></li>
+                  <li><span class="num">3</span><div>Дальше L не менять. Если угол вылез из отрезка между двумя пробами, L мало: увеличить и считать заново.</div></li>
+                </ol>
+              </div>
+              <div class="card">
+                <h3>На нашей W</h3>
+                <p class="eq">W′(x) = (x − 2) + π cos(πx)</p>
+                <p>Самое большое |W′| на [0, 4] в правом конце: |W′(4)| = 2 + π ≈ 5.14.</p>
+                <p class="eq" style="margin-top:8px">L = 6</p>
+                <p class="note">Запас около 17%. Не 3, график круче. Не 1000, шагов будет слишком много.</p>
+              </div>
+              <div class="card">
+                <h3>Если производной нет</h3>
+                <p>Сетка по отрезку, на соседних точках |ΔW| / |Δx|, взять максимум и запас. Это только оценка L. Сам метод по этой сетке не считают.</p>
+              </div>
+            </div>
           </div>
         </div>
-        <p class="note" style="margin-top:12px">Нужен максимум, тот же код на −W, в конце вернуть знак. Если такого L нет, как на ступеньке в постановке, метод так не обещает глобальный минимум.</p>
+        <div data-cave-panel="wrong" hidden>
+          <div class="geom-layout">
+            <div>
+              <div class="fig" id="cave-fig"></div>
+              <div class="geom-legend">
+                <span><i class="sw" style="background:#1c1916"></i>график W</span>
+                <span><i class="sw" style="background:#3f6212"></i>ломаная под графиком</span>
+                <span><i class="sw" style="background:#9f1239"></i>ломаная проткнула W</span>
+                <span><i class="sw" style="background:#1c1916;border-radius:99px"></i>u₀, u₂, u₁ с пары</span>
+              </div>
+            </div>
+            <div class="geom-story">
+              <div class="card">
+                <h3>Откуда эти галочки</h3>
+                <p>Это не новые точки и не сетка. После первой пробы на паре уже были u₀ = 0, u₂ = 2, u₁ = 4. Из каждой чёрной точки галочка g = W(u) − L|x − u|. Зелёное, их потолок, та же ломаная, что в расчёте.</p>
+                <p class="note">Меняется только L. Точки те же.</p>
+              </div>
+              <div class="card">
+                <h3>Подставьте другое L</h3>
+                <div class="seg" id="cave-seg">
+                  <button type="button" data-cave="low">L = 3</button>
+                  <button type="button" data-cave="ok" class="on">L = 6</button>
+                  <button type="button" data-cave="high">L = 16</button>
+                </div>
+                <div class="range-row">
+                  <span>L</span>
+                  <input type="range" id="cave-L" min="2" max="18" step="0.1" value="6" />
+                  <span id="cave-Lval">6.0</span>
+                </div>
+                <p class="eq" id="cave-check" style="margin-top:10px"></p>
+                <p class="note" id="cave-msg"></p>
+              </div>
+              <div class="card" id="cave-story"></div>
+            </div>
+          </div>
+        </div>
       `,
       onEnter: bindCaveats
     },
@@ -1267,6 +1310,8 @@
   }
 
   function bindCaveats() {
+    const tab = document.getElementById("cave-tab");
+    const howFig = document.getElementById("cave-how-fig");
     const fig = document.getElementById("cave-fig");
     const sl = document.getElementById("cave-L");
     const val = document.getElementById("cave-Lval");
@@ -1274,12 +1319,39 @@
     const msg = document.getElementById("cave-msg");
     const story = document.getElementById("cave-story");
     const seg = document.getElementById("cave-seg");
-    if (!fig || !sl) return;
-    const uppers = [[0, Wpair(0)], [1, Wpair(1)], [2, Wpair(2)], [4, Wpair(4)]];
+    if (!tab) return;
+    const uppers = [[0, 2], [2, 0], [4, 2]];
+    function show(which) {
+      document.querySelectorAll("[data-cave-panel]").forEach(function (p) {
+        p.hidden = p.getAttribute("data-cave-panel") !== which;
+      });
+      tab.querySelectorAll("button").forEach(function (b) {
+        b.classList.toggle("on", b.getAttribute("data-cave-tab") === which);
+      });
+      if (which === "wrong") paintWrong();
+    }
+    if (howFig) {
+      howFig.innerHTML = svgCurve({
+        fn: W,
+        x0: 0,
+        x1: 4,
+        yMin: -1.35,
+        yMax: 2.7,
+        h: 300,
+        cone: { u: 4, L: 6, Wu: 2 },
+        points: [
+          { x: 4, y: 2, fill: "#1f4d63" },
+          { x: 1.546, y: -0.887, fill: "#3f6212" }
+        ],
+        marks: [
+          { x: 4, y: 2, text: "|W′(4)| ≈ 5.14", fill: "#1f4d63", dx: -78, dy: -10 },
+          { x: 1.546, y: -0.887, text: "глоб. мин", fill: "#3f6212", dx: -18, dy: 20 }
+        ]
+      });
+    }
     function envOf(ell) {
-      const s = uppers.slice().sort(function (a, b) { return a[0] - b[0]; });
+      const s = uppers.slice();
       const pts = [];
-      let out = null;
       let minP = 0;
       for (let i = 0; i < s.length - 1; i++) {
         const uq = s[i][0], Wq = s[i][1], uv = s[i + 1][0], Wv = s[i + 1][1];
@@ -1288,9 +1360,8 @@
         if (i === 0) pts.push([uq, Wq]);
         pts.push([x, p], [uv, Wv]);
         minP = Math.min(minP, p);
-        if (x < uq - 1e-6 || x > uv + 1e-6) out = { x: x, uq: uq, uv: uv };
       }
-      return { pts: pts, out: out, minP: minP };
+      return { pts: pts, minP: minP };
     }
     function pierced(ell) {
       for (let i = 0; i <= 160; i++) {
@@ -1300,58 +1371,57 @@
         uppers.forEach(function (u) {
           g = Math.max(g, u[1] - ell * Math.abs(x - u[0]));
         });
-        if (g > Wx + 0.04) return true;
+        if (g > Wx + 0.03) return true;
       }
       return false;
     }
-    function worstNeed() {
-      let need = 0, a = uppers[0], b = uppers[1];
-      for (let i = 0; i < uppers.length - 1; i++) {
-        const u = uppers[i], v = uppers[i + 1];
-        const n = Math.abs(u[1] - v[1]) / Math.abs(v[0] - u[0]);
-        if (n > need) { need = n; a = u; b = v; }
-      }
-      return { need: need, a: a, b: b };
-    }
-    function paint() {
+    function paintWrong() {
+      if (!fig || !sl) return;
       const ell = +sl.value;
-      val.textContent = ell.toFixed(1);
+      if (val) val.textContent = ell.toFixed(1);
       const env = envOf(ell);
       const bad = pierced(ell);
-      const wr = worstNeed();
-      const yMin = Math.max(-8.5, Math.min(-1.4, env.minP - 0.4));
+      const yMin = Math.max(-8.2, Math.min(-1.4, env.minP - 0.35));
       fig.innerHTML = svgCurve({
         fn: W,
         x0: 0,
         x1: 4,
         yMin: yMin,
         yMax: 2.7,
-        h: 320,
+        h: 300,
         broken: [{ pts: env.pts, stroke: bad ? "#9f1239" : "#3f6212" }],
-        points: uppers.map(function (u) {
-          return { x: u[0], y: u[1], fill: "#1c1916", r: 5.5 };
-        }),
+        points: [
+          { x: 0, y: 2, fill: "#1c1916" },
+          { x: 2, y: 0, fill: "#1c1916" },
+          { x: 4, y: 2, fill: "#1c1916" }
+        ],
         marks: [
-          { x: 1.55, y: -0.89, text: "яма", fill: "#3f6212", dx: -8, dy: 18 }
+          { x: 0, y: 2, text: "u₀", fill: "#6b645b", dx: 8, dy: -8 },
+          { x: 2, y: 0, text: "u₂", fill: "#6b645b", dx: 8, dy: -10 },
+          { x: 4, y: 2, text: "u₁", fill: "#6b645b", dx: -22, dy: -8 }
         ]
       });
-      chk.innerHTML = "на отрезке [" + wr.a[0] + ", " + wr.b[0] + "]: |ΔW| / |Δx| ≈ " + wr.need.toFixed(2) +
-        (wr.need > ell + 1e-9 ? " &gt; L" : " ≤ L");
+      const xL = (2 - 0) / (2 * ell) + 1;
+      const pL = 2 - ell * (xL - 0);
+      if (chk) {
+        chk.innerHTML = "угол на [0, 2]: x = (2 − 0) / " + (2 * ell).toFixed(0) +
+          " + 1 = " + fmt(xL, 2) + ", &nbsp; p = " + fmt(pL, 2);
+      }
       if (bad) {
-        msg.textContent = "Ломаная пересекла график. L меньше крутизны W.";
-        story.innerHTML = "<h3>L мало</h3>" +
-          "<p>Ломаная должна быть целиком под графиком. Здесь она проткнула W. Угол может стать глубже настоящей ямы, хотя ямы там нет.</p>" +
-          "<p style='margin-top:8px'>Метод пойдёт в этот фальшивый карман и левую яму может не посмотреть. В коде проверка: если угол вылез из отрезка между двумя пробами, L надо увеличить.</p>";
+        if (msg) msg.textContent = "Ломаная пересекла график. L меньше крутизны W.";
+        if (story) story.innerHTML = "<h3>L = " + ell.toFixed(1) + ", мало</h3>" +
+          "<p>Склоны галочек слишком пологие. Прямая из уже посчитанной точки проходит выше графика. Угол может оказаться глубже настоящей ямы, хотя ямы там нет.</p>" +
+          "<p style='margin-top:8px'>Метод полезет в эту дырку. Нужно взять L ≥ 5.14 и считать заново.</p>";
       } else if (ell > 10) {
-        msg.textContent = "Ломаная под графиком, зубья очень глубокие.";
-        story.innerHTML = "<h3>L с большим запасом</h3>" +
-          "<p>Ломаная не протыкает график, метод честный. Но углы сидят глубоко, зазор падает медленно, шагов много.</p>" +
-          "<p style='margin-top:8px'>Поэтому L берут чуть больше max|W′|, не «сто тысяч». У нас max|W′| ≈ 5.14, взяли 6.</p>";
+        if (msg) msg.textContent = "Ломаная под графиком, зубья глубокие.";
+        if (story) story.innerHTML = "<h3>L = " + ell.toFixed(1) + ", слишком большой запас</h3>" +
+          "<p>Галочки честные, график не протыкают. Углы сидят глубоко, зазор падает медленно, шагов много.</p>" +
+          "<p style='margin-top:8px'>Поэтому берут чуть больше max|W′|, у нас 6, а не 16.</p>";
       } else {
-        msg.textContent = "Ломаная под графиком. Так мы считали на паре.";
-        story.innerHTML = "<h3>L хватает</h3>" +
-          "<p>Из каждой чёрной точки склон не меньше крутизны W. Ломаная снизу обнимает график и не пересекает его.</p>" +
-          "<p style='margin-top:8px'>Тогда самый глубокий угол, это честный кандидат. Метод не пропустит яму только потому, что сам себе вырыл дырку.</p>";
+        if (msg) msg.textContent = "Ломаная под графиком. Так считали на паре.";
+        if (story) story.innerHTML = "<h3>L = " + ell.toFixed(1) + ", хватает</h3>" +
+          "<p>Те же три галочки, что после пробы u₂. Склон не меньше крутизны W, ломаная снизу и не пересекает график.</p>" +
+          "<p style='margin-top:8px'>Самый глубокий угол тогда честный кандидат. Мы так и брали L = 6.</p>";
       }
       if (seg) {
         seg.querySelectorAll("button").forEach(function (b) {
@@ -1363,17 +1433,23 @@
         });
       }
     }
-    sl.addEventListener("input", paint);
+    if (sl) sl.addEventListener("input", paintWrong);
     if (seg) {
       seg.addEventListener("click", function (e) {
         const b = e.target.closest("button[data-cave]");
-        if (!b) return;
-        const key = b.getAttribute("data-cave");
-        sl.value = key === "low" ? "3" : key === "high" ? "16" : "6";
-        paint();
+        if (!b || !sl) return;
+        sl.value = b.getAttribute("data-cave") === "low" ? "3" : b.getAttribute("data-cave") === "high" ? "16" : "6";
+        paintWrong();
       });
     }
-    paint();
+    if (tab) {
+      tab.addEventListener("click", function (e) {
+        const b = e.target.closest("button[data-cave-tab]");
+        if (!b) return;
+        show(b.getAttribute("data-cave-tab"));
+      });
+    }
+    show("how");
   }
 
   function ideaW(x) {
@@ -2146,7 +2222,19 @@
         body: "Последняя строка с p ≈ −2.076. Соседи 17/6 и 4.",
         eq: "x = (61/72 − 2) / 12 + (17/6 + 4) / 2<br>= (−83/72) / 12 + 41/12 = −83/864 + 2952/864 = 2869/864 ≈ 3.321<br>p = 61/72 − 6 · (2869/864 − 17/6) = −299/144 ≈ −2.076",
         eq2: "W(3.321) = ½(3.321 − 2)² + sin(3.321π) ≈ 0.027<br>δ = 0.027 − (−2.076) ≈ 2.103 ≥ 1",
-        more: "Мелкая яма: лучше холма, хуже −0.883. Глобальной не стала. Локальный спуск справа остался бы здесь. Самые глубокие углы снова слева."
+        more: "Мелкая яма: лучше холма, хуже −0.883. Глобальной не стала. Самые глубокие углы снова слева, пара p ≈ −1.730. Это ещё не стоп: сначала посчитаем W в левом из них."
+      },
+      {
+        name: "u₉ ≈ 1.43",
+        uppers: hist[7],
+        showPick: true,
+        liftLo: picks[7],
+        best: bestOf(hist[7]),
+        title: "Проба u₉. Возврат в левую яму",
+        body: "После правой ямы самые глубокие углы снова слева, p ≈ −1.730. Две строки на одной высоте, берём левую. Соседи уже есть в таблице верхних: 7/6 и u₆ ≈ 1.571.",
+        eq: "x = (−11/72 − (−0.883)) / 12 + (7/6 + 1.571) / 2 ≈ 1.430<br>p ≈ −1.730<br>W(1.430) = ½(1.430 − 2)² + sin(1.430π) ≈ −0.813",
+        eq2: "δ = −0.813 − (−1.730) = 0.917 &lt; 1",
+        more: "Зазор впервые меньше ε. Новых проб не будет. u₉ стала верхней, но W ≈ −0.813 хуже уже известной −0.883. На следующем кадре читаем ответ."
       },
       {
         name: "Стоп",
@@ -2154,16 +2242,15 @@
         hideLowers: true,
         gap: { x: lastLo.x, p: lastLo.p, Wu: lastW, delta: fmt(lastDelta, 3) },
         answer: answer,
-        title: "Стоп: зазор меньше ε. Какую точку берём",
-        body: "Последняя проба, левая из пары p ≈ −1.730. Соседи 7/6 и 1.571, обе уже в таблице верхних.",
-        eq: "x = (−11/72 − (−0.883)) / 12 + (7/6 + 1.571) / 2 ≈ 1.430<br>p ≈ −1.730<br>W(1.430) = ½(1.430 − 2)² + sin(1.430π) ≈ −0.813",
-        eq2: "δ = −0.813 − (−1.730) = 0.917 &lt; 1",
-        more: "Стоп. Ответ не угол ломаной и не обязательно последняя проба. Берём лучшую уже посчитанную W: u₆ ≈ 1.571, W ≈ −0.883. Истинный минимум около 1.546 и −0.887. Поймать надо с зазором ε, не точкой.",
-        extra: pocket("Подробнее: две записи ответа и весь путь",
+        title: "Стоп. Какую точку записываем",
+        body: "Критерий уже выполнен на u₉: δ = 0.917 &lt; ε = 1. Ломаная в этой точке почти дотянулась до графика. Новых углов не меряем.",
+        eq: "последняя проба &nbsp; u₉ ≈ 1.430, &nbsp; W ≈ −0.813<br>лучшая верхняя &nbsp; u₆ ≈ 1.571, &nbsp; W ≈ −0.883",
+        more: "Ответ не оранжевый угол и не обязательно последняя проба. Берём уже посчитанную точку с наименьшим W, здесь u₆. Истинный минимум около 1.546 и −0.887. Поймать надо с зазором ε, не точкой.",
+        extra: pocket("Подробнее: две записи и весь путь",
           "<p>Конспект пишет последнюю пробу: 1.430 и −0.813. Для сдачи удобнее лучшая верхняя. Тот же ε-ответ, ближе к истине.</p>" +
-          "<p>Порядок проб: концы 0 и 4, горб 2, склон 7/6, холм 17/6, холм 0.76, дно левой ямы 1.57, холм 2.35, дно правой 3.32, стоп 1.43 рядом с лучшей.</p>" +
+          "<p>Порядок проб: концы 0 и 4, горб 2, склон 7/6, холм 17/6, холм 0.76, дно левой ямы 1.57, холм 2.35, дно правой 3.32, возврат 1.43, стоп.</p>" +
           "<p>Холмы 5 и 7 тоже пришлось измерить. Иначе нижние там оставались глубокими.</p>" +
-          "<p>Зазор всегда W минус высота той нижней, которую только что измерили. Нумерация p<sub>k−2</sub> в слайдах плывёт из-за стартовых итераций 0 и 1.</p>")
+          "<p>Зазор всегда W минус высота той нижней, которую только что измерили.</p>")
       }
     ];
 
