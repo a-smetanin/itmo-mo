@@ -1,0 +1,1616 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Множители Лагранжа · условный экстремум</title>
+  <style>
+    :root {
+      --bg: #f4efe6;
+      --paper: #fffdf8;
+      --ink: #1c1916;
+      --muted: #6b645b;
+      --line: #d9d0c3;
+      --accent: #1f4d63;
+      --accent-soft: #e4eef2;
+      --pivot: #b45309;
+      --pivot-soft: #f3e0c8;
+      --ok: #3f6212;
+      --ok-soft: #e8efd8;
+      --bad: #9f1239;
+      --shadow: 0 0 0 1px var(--line);
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; }
+    body {
+      font-family: "Segoe UI", "Iosevka", "Cambria", Georgia, serif;
+      background: var(--bg);
+      color: var(--ink);
+      overflow: hidden;
+    }
+    .app { display: grid; grid-template-rows: 56px 1fr 44px; height: 100%; }
+    header {
+      display: flex; align-items: center; gap: 16px;
+      padding: 0 18px; border-bottom: 1px solid var(--line); background: var(--paper);
+    }
+    header .brand { font-weight: 650; }
+    header .brand span { color: var(--muted); font-weight: 500; }
+    .phase {
+      font-size: 13px; color: var(--accent); background: var(--accent-soft);
+      padding: 4px 10px; border-radius: 999px; white-space: nowrap;
+    }
+    .progress { flex: 1; height: 4px; background: var(--line); border-radius: 99px; overflow: hidden; }
+    .progress > i { display: block; height: 100%; background: var(--accent); width: 0; }
+    .counter { font-variant-numeric: tabular-nums; color: var(--muted); font-size: 13px; min-width: 52px; text-align: right; }
+    .nav-btn {
+      appearance: none; border: 1px solid var(--line); background: var(--paper); color: var(--ink);
+      height: 32px; min-width: 32px; padding: 0 10px; border-radius: 6px; cursor: pointer; font: inherit; font-size: 14px;
+    }
+    .nav-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .nav-btn:disabled { opacity: 0.35; cursor: default; }
+    .stage { display: grid; grid-template-columns: 210px 1fr; min-height: 0; }
+    .toc { border-right: 1px solid var(--line); padding: 14px 10px; overflow: auto; background: #f7f3eb; }
+    .toc h2 {
+      margin: 0 8px 10px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em;
+      color: var(--muted); font-weight: 650;
+    }
+    .toc button {
+      display: block; width: 100%; text-align: left; border: 0; background: transparent; color: var(--muted);
+      font: inherit; font-size: 13px; padding: 7px 8px; border-radius: 6px; cursor: pointer;
+    }
+    .toc button.active { background: var(--paper); color: var(--ink); box-shadow: var(--shadow); }
+    .toc button .n { display: inline-block; width: 18px; color: var(--muted); font-variant-numeric: tabular-nums; }
+    main { overflow: auto; padding: 22px 32px 32px; }
+    .slide { max-width: 1180px; }
+    .slide h1 { font-size: 26px; font-weight: 650; margin: 0 0 8px; letter-spacing: -0.02em; }
+    .lead { color: var(--muted); font-size: 16px; margin: 0 0 14px; line-height: 1.45; }
+    .say {
+      font-size: 18px; line-height: 1.4; margin: 0 0 14px; padding: 10px 14px;
+      background: var(--accent-soft); border-left: 3px solid var(--accent); border-radius: 0 8px 8px 0;
+    }
+    .geom-layout {
+      display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(280px, 360px);
+      gap: 16px; align-items: start;
+    }
+    .geom-story { display: flex; flex-direction: column; gap: 10px; }
+    .card {
+      background: var(--paper); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px;
+    }
+    .card h3 {
+      margin: 0 0 8px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted);
+    }
+    .card p { margin: 0 0 8px; line-height: 1.45; }
+    .card p:last-child { margin-bottom: 0; }
+    .eq { font-family: "Cambria Math", "Times New Roman", serif; font-size: 20px; line-height: 1.55; }
+    .note { font-size: 14px; color: var(--muted); line-height: 1.45; margin-top: 8px; }
+    .fig { background: var(--paper); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+    .fig svg { display: block; width: 100%; height: auto; }
+    .geom-legend { display: flex; gap: 14px; flex-wrap: wrap; padding: 8px 2px 0; font-size: 12px; color: var(--muted); }
+    .sw { display: inline-block; width: 12px; height: 12px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; }
+    .seg { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0; }
+    .seg button {
+      appearance: none; border: 1px solid var(--line); background: var(--paper); color: var(--ink);
+      font: inherit; font-size: 13px; padding: 6px 10px; border-radius: 6px; cursor: pointer;
+    }
+    .seg button.on { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+    .range-row { display: grid; grid-template-columns: 28px 1fr 64px; gap: 10px; align-items: center; margin: 8px 0; }
+    .range-row input[type="range"] { width: 100%; }
+    .big { font-family: "Cambria Math", "Times New Roman", serif; font-size: 32px; font-weight: 650; line-height: 1.2; margin: 4px 0; }
+    .idea-pills { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 12px; }
+    .idea-pills button {
+      appearance: none; border: 1px solid var(--line); background: var(--paper); color: var(--ink);
+      border-radius: 99px; padding: 5px 11px; font: inherit; font-size: 13px; cursor: pointer;
+    }
+    .idea-pills button.on { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); font-weight: 650; }
+    .idea-pills.algo button { font-size: 12px; padding: 4px 8px; }
+    .alg-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(420px, 540px);
+      gap: 16px;
+      align-items: start;
+    }
+    .alg-side {
+      display: flex; flex-direction: column; gap: 10px; min-height: 0;
+      max-height: calc(100vh - 230px);
+    }
+    .pin {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-left: 3px solid var(--accent);
+      border-radius: 0 10px 10px 0;
+      padding: 8px 14px 6px;
+    }
+    .pin h3 {
+      margin: 0 0 2px;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+      font-weight: 650;
+    }
+    .pin h3.pin-next { margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--line); }
+    .pin math { font-size: 18px; font-family: "Cambria Math", "Times New Roman", serif; }
+    .pin .dline { padding: 1px 0 2px; border-top: 0; }
+    .card.deriv { flex: 1; min-height: 0; overflow: auto; }
+    .deriv h3 {
+      text-transform: none;
+      letter-spacing: 0;
+      font-size: 17px;
+      color: var(--ink);
+      font-weight: 650;
+    }
+    .deriv .step-k { margin: 0 0 6px; font-size: 12px; color: var(--muted); }
+    .dline { padding: 7px 2px 8px; border-top: 1px solid var(--line); }
+    .deriv .dline { padding: 4px 2px 5px; }
+    .deriv .dline > math { font-size: 20px; }
+    .dline:first-of-type { border-top: 0; padding-top: 2px; }
+    .dline > math { font-size: 22px; }
+    .dline .sayline { margin: 2px 0 0; font-size: 14px; line-height: 1.4; }
+    .dline .sayline math { font-size: 16px; }
+    .math-bad { color: var(--bad); font-family: Consolas, monospace; font-size: 13px; }
+    .deriv math { font-family: "Cambria Math", "Times New Roman", serif; }
+    .rebuild-nav {
+      display: flex; align-items: center; gap: 10px; position: sticky; top: 0; z-index: 3;
+      background: var(--bg); padding: 0 0 8px;
+    }
+    .rebuild-nav .cnt { font-variant-numeric: tabular-nums; color: var(--muted); font-size: 13px; }
+    .rebuild-nav .hint { font-size: 13px; color: var(--muted); }
+    .sheet .line { margin: 0 0 6px; }
+    .sheet .line.wait { opacity: 0.28; }
+    .sheet .line.now { background: var(--accent-soft); border-radius: 6px; padding: 2px 8px; }
+    table.sx { border-collapse: collapse; width: 100%; font-size: 14px; background: var(--paper); }
+    table.sx th, table.sx td { border: 1px solid var(--line); padding: 5px 8px; text-align: left; }
+    table.sx th { background: #f3eee4; font-size: 12px; font-weight: 650; }
+    table.sx td.best { background: var(--ok-soft); font-weight: 650; }
+    table.sx td.badc { background: #f8e8ea; }
+    table.sx td.num { font-variant-numeric: tabular-nums; color: var(--muted); width: 28px; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .steps { margin: 0; padding: 0; list-style: none; }
+    .steps li { display: grid; grid-template-columns: 28px 1fr; gap: 10px; margin-bottom: 10px; font-size: 15px; line-height: 1.4; }
+    .steps ul { margin: 6px 0 0; padding-left: 18px; }
+    .steps ul li { display: list-item; margin: 0 0 3px; font-size: 14px; }
+    .steps .num {
+      width: 28px; height: 28px; border-radius: 50%; background: var(--accent); color: #fff;
+      display: grid; place-items: center; font-size: 13px; font-weight: 650;
+    }
+    .ban { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+    .ban span {
+      font-size: 12px; padding: 3px 8px; border-radius: 99px; background: #f8e8ea; color: var(--bad); border: 1px solid #e8c5cc;
+    }
+    .codebox {
+      font-family: Consolas, "Cascadia Mono", monospace; font-size: 12.5px; line-height: 1.5;
+      background: #f7f3eb; border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px;
+      margin: 8px 0 0; white-space: pre; overflow: auto;
+    }
+    .card a, .note a { color: var(--accent); text-decoration: none; border-bottom: 1px solid var(--line); }
+    footer {
+      border-top: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between;
+      padding: 0 16px; background: var(--paper); color: var(--muted); font-size: 12px;
+    }
+    kbd { font-family: inherit; font-size: 11px; border: 1px solid var(--line); background: #f7f3eb; padding: 1px 5px; border-radius: 4px; }
+    @media (max-width: 1100px) {
+      .stage { grid-template-columns: 170px 1fr; }
+      main { padding: 16px; }
+      .geom-layout, .grid-2 { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div class="brand">Множители Лагранжа <span>· практика 3</span></div>
+      <div class="phase" id="phase"></div>
+      <div class="progress"><i id="bar"></i></div>
+      <div class="counter" id="counter"></div>
+      <button class="nav-btn" id="prev" type="button">←</button>
+      <button class="nav-btn" id="next" type="button">→</button>
+    </header>
+    <div class="stage">
+      <nav class="toc" id="toc"></nav>
+      <main id="main"></main>
+    </div>
+    <footer>
+      <div>Три примера: прямая x + y = 2, окружность и полуплоскость x + y ≤ 2</div>
+      <div><kbd>←</kbd> <kbd>→</kbd> шаг · <kbd>F11</kbd> на проектор</div>
+    </footer>
+  </div>
+<script>
+(function () {
+  const RT = Math.SQRT2;
+
+  function plane(opt) {
+    const w = opt.w || 700;
+    const h = opt.h || 520;
+    const padL = 42, padR = 16, padT = 14, padB = 30;
+    const x0 = opt.x0, x1 = opt.x1, y0 = opt.y0, y1 = opt.y1;
+    const s = Math.min((w - padL - padR) / (x1 - x0), (h - padT - padB) / (y1 - y0));
+    const ox = padL + ((w - padL - padR) - s * (x1 - x0)) / 2;
+    const oy = padT + ((h - padT - padB) - s * (y1 - y0)) / 2;
+    function X(x) { return ox + (x - x0) * s; }
+    function Y(y) { return oy + (y1 - y) * s; }
+    let g = '<svg viewBox="0 0 ' + w + " " + h + '" role="img">';
+    g += '<rect width="' + w + '" height="' + h + '" fill="#fffdf8"/>';
+    g += '<g font-family="Cambria Math, Segoe UI, Cambria, Georgia, serif">';
+    for (let t = Math.ceil(x0); t <= Math.floor(x1); t++) {
+      g += '<line x1="' + X(t) + '" y1="' + Y(y0) + '" x2="' + X(t) + '" y2="' + Y(y1) + '" stroke="#efe8dc"/>';
+      if (t !== 0) g += '<text x="' + X(t) + '" y="' + (Y(0) + 15) + '" font-size="11" fill="#6b645b" text-anchor="middle">' + t + "</text>";
+    }
+    for (let t = Math.ceil(y0); t <= Math.floor(y1); t++) {
+      g += '<line x1="' + X(x0) + '" y1="' + Y(t) + '" x2="' + X(x1) + '" y2="' + Y(t) + '" stroke="#efe8dc"/>';
+      if (t !== 0) g += '<text x="' + (X(0) - 6) + '" y="' + (Y(t) + 4) + '" font-size="11" fill="#6b645b" text-anchor="end">' + t + "</text>";
+    }
+    if (y0 < 0 && y1 > 0) g += '<line x1="' + X(x0) + '" y1="' + Y(0) + '" x2="' + X(x1) + '" y2="' + Y(0) + '" stroke="#d9d0c3"/>';
+    if (x0 < 0 && x1 > 0) g += '<line x1="' + X(0) + '" y1="' + Y(y0) + '" x2="' + X(0) + '" y2="' + Y(y1) + '" stroke="#d9d0c3"/>';
+    g += '<text x="' + (X(x1) - 2) + '" y="' + (Y(0) - 8) + '" font-size="13" fill="#6b645b" text-anchor="end">x</text>';
+    g += '<text x="' + (X(0) + 8) + '" y="' + (Y(y1) + 13) + '" font-size="13" fill="#6b645b">y</text>';
+    (opt.polys || []).forEach(function (p) {
+      if (!p.pts || p.pts.length < 3) return;
+      const d = p.pts.map(function (q, i) { return (i ? "L" : "M") + X(q[0]).toFixed(1) + " " + Y(q[1]).toFixed(1); }).join(" ") + " Z";
+      g += '<path d="' + d + '" fill="' + (p.fill || "#e4eef2") + '" fill-opacity="' + (p.opacity == null ? 0.72 : p.opacity) + '" stroke="none"/>';
+    });
+
+    function lineSum(b, stroke, width) {
+      const xa = Math.max(x0, b - y1);
+      const xb = Math.min(x1, b - y0);
+      g += '<line x1="' + X(xa) + '" y1="' + Y(b - xa) + '" x2="' + X(xb) + '" y2="' + Y(b - xb) + '" stroke="' + stroke + '" stroke-width="' + width + '"/>';
+    }
+    (opt.circles || []).forEach(function (c) {
+      g += '<circle cx="' + X(c.cx || 0) + '" cy="' + Y(c.cy || 0) + '" r="' + (c.r * s) + '" fill="' + (c.fill || "none") + '" fill-opacity="' + (c.fillOpacity == null ? 1 : c.fillOpacity) + '" stroke="' + (c.stroke || "#1c1916") + '" stroke-width="' + (c.width || 2.2) + '" opacity="' + (c.opacity == null ? 1 : c.opacity) + '"/>';
+    });
+    (opt.lines || []).forEach(function (ln) { lineSum(ln.b, ln.stroke || "#1f4d63", ln.width || 2.4); });
+    (opt.dashed || []).forEach(function (d) {
+      g += '<line x1="' + X(d.x1) + '" y1="' + Y(d.y1) + '" x2="' + X(d.x2) + '" y2="' + Y(d.y2) + '" stroke="' + (d.stroke || "#b45309") + '" stroke-width="1.6" stroke-dasharray="5 4"/>';
+    });
+    (opt.paths || []).forEach(function (p) {
+      if (!p.pts || !p.pts.length) return;
+      const d = p.pts.map(function (q, i) { return (i ? "L" : "M") + X(q[0]).toFixed(1) + " " + Y(q[1]).toFixed(1); }).join(" ");
+      g += '<path d="' + d + '" fill="none" stroke="' + (p.stroke || "#b45309") + '" stroke-width="' + (p.width || 1.7) + '"/>';
+    });
+    function arrow(x1, y1, x2, y2, color) {
+      const px1 = X(x1), py1 = Y(y1), px2 = X(x2), py2 = Y(y2);
+      const ang = Math.atan2(py2 - py1, px2 - px1);
+      const ah = 10;
+      g += '<line x1="' + px1 + '" y1="' + py1 + '" x2="' + px2 + '" y2="' + py2 + '" stroke="' + color + '" stroke-width="2.4"/>';
+      g += '<polygon points="' + px2 + "," + py2 + " " + (px2 - ah * Math.cos(ang - 0.4)) + "," + (py2 - ah * Math.sin(ang - 0.4)) + " " + (px2 - ah * Math.cos(ang + 0.4)) + "," + (py2 - ah * Math.sin(ang + 0.4)) + '" fill="' + color + '"/>';
+    }
+    (opt.arrows || []).forEach(function (a) { arrow(a.x1, a.y1, a.x2, a.y2, a.color); });
+    (opt.points || []).forEach(function (p) {
+      g += '<circle cx="' + X(p.x) + '" cy="' + Y(p.y) + '" r="' + (p.r || 6) + '" fill="' + (p.fill || "#1c1916") + '"' +
+        (p.stroke ? ' stroke="' + p.stroke + '" stroke-width="2"' : "") + "/>";
+    });
+    (opt.marks || []).forEach(function (m) {
+      g += '<text x="' + (X(m.x) + (m.dx || 8)) + '" y="' + (Y(m.y) + (m.dy || -8)) + '" font-size="' + (m.size || 14) + '" font-weight="650" fill="' + (m.fill || "#1c1916") + '" stroke="#fffdf8" stroke-width="3.5" paint-order="stroke fill" stroke-linejoin="round">' + m.text + "</text>";
+    });
+    g += "</g></svg>";
+    return g;
+  }
+
+  function hits(r) {
+    const disc = 2 * r * r - 4;
+    if (disc < -0.04) return [];
+    if (disc < 0.04) return [{ x: 1, y: 1 }];
+    const h = Math.sqrt(disc) / 2;
+    return [{ x: 1 - h, y: 1 + h }, { x: 1 + h, y: 1 - h }];
+  }
+
+  function levelFig(r, touchForce, withArrows) {
+    const pts = hits(r);
+    const touch = touchForce || pts.length === 1;
+    const drawR = touch ? RT : r;
+    const dots = [{ x: 0, y: 0, fill: "#9f1239", r: 5 }];
+    const marks = [{ x: 0, y: 0, text: "(0, 0)", fill: "#9f1239", dx: -46, dy: 16 }];
+    const arrows = [];
+    if (touch) {
+      dots.push({ x: 1, y: 1, fill: "#3f6212", r: 7 });
+      marks.push({ x: 1, y: 1, text: "(1, 1)", fill: "#3f6212", dx: 12, dy: 18 });
+      if (withArrows) {
+        arrows.push({ x1: 1, y1: 1, x2: 2.15, y2: 2.15, color: "#3f6212" });
+        arrows.push({ x1: 1, y1: 1, x2: 1.6, y2: 1.6, color: "#1f4d63" });
+        marks.push({ x: 2.15, y: 2.15, text: "∇f", fill: "#3f6212", dx: 6, dy: -4 });
+        marks.push({ x: 0.15, y: 1.85, text: "∇h", fill: "#1f4d63", dx: -8, dy: -2 });
+      }
+    } else {
+      pts.forEach(function (p) { dots.push({ x: p.x, y: p.y, fill: "#b45309", r: 5 }); });
+    }
+    return plane({
+      x0: -3.4, x1: 4.2, y0: -3.4, y1: 4.2, h: 460,
+      lines: [{ b: 2 }],
+      circles: [{ r: drawR }],
+      arrows: arrows, points: dots, marks: marks
+    });
+  }
+
+  function toMathML(src) {
+    let i = 0;
+    const rel = { neq: "≠", ne: "≠", ge: "≥", le: "≤" };
+    function skip() { while (src[i] === " " || src[i] === "\t") i++; }
+    function readName() {
+      let name = "";
+      while (i < src.length && /[a-zA-Z]/.test(src[i])) name += src[i++];
+      return name;
+    }
+    function parseAtom() {
+      skip();
+      const ch = src[i];
+      if (ch === "{") {
+        i++;
+        const inner = parseExpr();
+        skip();
+        if (src[i] === "}") i++;
+        return "<mrow>" + inner + "</mrow>";
+      }
+      if (ch === "(" || ch === "[") {
+        const open = ch;
+        const close = ch === "(" ? ")" : "]";
+        i++;
+        const inner = parseExpr();
+        skip();
+        if (src[i] === close) i++;
+        return "<mrow><mo>" + open + "</mo>" + inner + "<mo>" + close + "</mo></mrow>";
+      }
+      if (ch === "\\") {
+        i++;
+        const name = readName();
+        if (name === "frac") return "<mfrac>" + parseAtom() + parseAtom() + "</mfrac>";
+        if (name === "sqrt") return "<msqrt>" + parseAtom() + "</msqrt>";
+        if (name === "abs") return "<mrow><mo>|</mo>" + parseAtom() + "<mo>|</mo></mrow>";
+        if (name === "quad") return "<mspace width=\"1em\"></mspace>";
+        if (name === "lambda") return "<mi>λ</mi>";
+        if (name === "mu") return "<mi>μ</mi>";
+        if (name === "partial") return "<mi>∂</mi>";
+        if (name === "nabla") return "<mi>∇</mi>";
+        if (name === "cdot") return "<mo>·</mo>";
+        if (name === "times") return "<mo>×</mo>";
+        if (name === "pm") return "<mo>\u00b1</mo>";
+        if (rel[name]) return "<mo>" + rel[name] + "</mo>";
+        return "<mtext>" + name + "</mtext>";
+      }
+      if (ch && /[0-9.]/.test(ch)) {
+        let n = "";
+        while (i < src.length && /[0-9.]/.test(src[i])) n += src[i++];
+        return "<mn>" + n + "</mn>";
+      }
+      if (ch && /[a-zA-Z]/.test(ch)) {
+        i++;
+        return "<mi>" + ch + "</mi>";
+      }
+      return "";
+    }
+    function parseFactor() {
+      let node = parseAtom();
+      while (true) {
+        skip();
+        if (src[i] === "^") { i++; node = "<msup>" + node + parseAtom() + "</msup>"; continue; }
+        if (src[i] === "_") { i++; node = "<msub>" + node + parseAtom() + "</msub>"; continue; }
+        break;
+      }
+      return node;
+    }
+    function parseTerm() {
+      skip();
+      let lead = "";
+      if (src[i] === "-") { i++; lead = "<mo>\u2212</mo>"; }
+      else if (src[i] === "+") { i++; lead = "<mo>+</mo>"; }
+      let acc = parseFactor();
+      while (true) {
+        skip();
+        if (!src[i]) break;
+        if (src[i] === "\\") {
+          const save = i;
+          i++;
+          const name = readName();
+          if (name === "cdot" || name === "times") {
+            acc += "<mo>" + (name === "cdot" ? "·" : "×") + "</mo>" + parseFactor();
+            continue;
+          }
+          if (rel[name] || name === "quad") { i = save; break; }
+          i = save;
+          acc += parseFactor();
+          continue;
+        }
+        if (/[0-9a-zA-Z({\\[]/.test(src[i])) { acc += parseFactor(); continue; }
+        break;
+      }
+      return lead + acc;
+    }
+    function parseExpr() {
+      let acc = parseTerm();
+      while (true) {
+        skip();
+        const ch = src[i];
+        if (ch === "+" || ch === "-" || ch === "=" || ch === "," || ch === "/" || ch === ">" || ch === "<") {
+          i++;
+          const shown = ch === "-" ? "\u2212" : ch === ">" ? "&gt;" : ch === "<" ? "&lt;" : ch;
+          acc += "<mo>" + shown + "</mo>" + parseTerm();
+          continue;
+        }
+        if (ch === "\\") {
+          const save = i;
+          i++;
+          const name = readName();
+          if (rel[name]) { acc += "<mo>" + rel[name] + "</mo>" + parseTerm(); continue; }
+          i = save;
+          break;
+        }
+        break;
+      }
+      return acc;
+    }
+    const body = parseExpr();
+    skip();
+    if (i < src.length) return "<span class=\"math-bad\">" + src + "</span>";
+    return "<math xmlns=\"http://www.w3.org/1998/Math/MathML\">" + body + "</math>";
+  }
+
+  function rich(text) {
+    return text.split("$").map(function (part, idx) {
+      return idx % 2 ? toMathML(part) : part;
+    }).join("");
+  }
+
+  const slides = [
+    {
+      id: "setup",
+      phase: "Алгоритм",
+      toc: "Алгоритм",
+      title: "Метод множителей Лагранжа",
+      lead: "Одиннадцать шагов из методички, пример: минимум x² + y² при x + y = 2. Стрелки листают шаги. Справа на каждом шаге вся выкладка.",
+      html: `
+        <div class="rebuild-nav">
+          <button class="nav-btn" id="rb-prev" type="button">←</button>
+          <button class="nav-btn" id="rb-next" type="button">→</button>
+          <span class="cnt" id="alg-cnt"></span>
+          <span class="hint">стрелки листают шаги, справа весь счёт шага</span>
+        </div>
+        <div class="idea-pills algo" id="alg-pills"></div>
+        <div class="alg-layout">
+          <div>
+            <div class="fig" id="alg-fig"></div>
+            <div class="geom-legend" id="alg-legend"></div>
+          </div>
+          <div class="alg-side">
+            <div class="pin" id="alg-pin"></div>
+            <div class="card deriv" id="alg-card"></div>
+          </div>
+        </div>`,
+      onEnter: function () {
+        const steps = [
+          {
+            pill: "1. Запись",
+            fig: "levels",
+            caption: "окружности цели и прямая ограничения",
+            title: "Функция и ограничение",
+            lines: [
+              { tex: "f(x, y) = x^{2} + y^{2}", note: "Цель. Уравнение $x^{2} + y^{2} = c$ задаёт окружность радиуса $\\sqrt{c}$ с центром в $(0, 0)$. На рисунке три такие окружности: $c = 1$, $c = 2$, $c = 4$." },
+              { tex: "g(x, y) = x + y - 2", note: "Ограничение $x + y = 2$ перенесли в нуль. Прямая на рисунке это $g = 0$." },
+              { tex: "g(0, 0) = 0 + 0 - 2 = -2 \\neq 0", note: "В начале координат $f = 0$. Подстановка в $g$ даёт $-2$, точка на прямой не лежит." }
+            ]
+          },
+          {
+            pill: "2. n и m",
+            fig: "count",
+            caption: "две оси, одна прямая",
+            title: "Сколько неизвестных",
+            lines: [
+              { tex: "n = 2", note: "Переменные $x$ и $y$." },
+              { tex: "m = 1", note: "Равенство одно: $g = 0$." },
+              { tex: "n + m = 3", note: "К переменным добавляется множитель $\\lambda$. Неизвестные: $x$, $y$, $\\lambda$." }
+            ]
+          },
+          {
+            pill: "3. Функция L",
+            fig: "levels",
+            caption: "L собирается из f и g",
+            title: "Функция Лагранжа",
+            lines: [
+              { tex: "L = f + \\lambda g", note: "Перед $\\lambda$ стоит плюс. Этот знак сохраняем до конца задачи." },
+              { tex: "L = x^{2} + y^{2} + \\lambda (x + y - 2)", note: "Подставили выражения $f$ и $g$." },
+              { tex: "\\lambda (x + y - 2) = \\lambda x + \\lambda y - 2\\lambda", note: "$\\lambda$ умножили на $x$, на $y$ и на $-2$." },
+              { tex: "L = x^{2} + y^{2} + \\lambda x + \\lambda y - 2\\lambda", note: "Сумма: дальше каждое слагаемое дифференцируется отдельно." }
+            ]
+          },
+          {
+            pill: "4. Производные",
+            fig: "grad",
+            caption: "в точке (0, 2) градиенты под углом",
+            title: "Производные по x и по y",
+            lines: [
+              { tex: "\\frac{\\partial}{\\partial x}(x^{2}) = 2x, \\quad \\frac{\\partial}{\\partial x}(\\lambda x) = \\lambda", note: "$y^{2}$, $\\lambda y$ и $-2\\lambda$ от $x$ не зависят." },
+              { tex: "\\frac{\\partial L}{\\partial x} = 2x + \\lambda, \\quad \\frac{\\partial L}{\\partial y} = 2y + \\lambda" },
+              { tex: "\\frac{\\partial g}{\\partial x} = 1", note: "$g = x + y - 2$. При $x$ коэффициент 1, слагаемые $y$ и $-2$ от $x$ не зависят. $\\lambda$ здесь нет." },
+              { tex: "\\frac{\\partial g}{\\partial y} = 1", note: "При $y$ коэффициент 1, слагаемые $x$ и $-2$ от $y$ не зависят." },
+              { tex: "\\nabla g = (1, 1)" },
+              { tex: "\\nabla f = (2x, 2y)", note: "В точке $(0, 2)$ на рисунке $\\nabla f = (0, 4)$ вертикален, $\\nabla g = (1, 1)$ идёт по нормали к прямой." }
+            ]
+          },
+          {
+            pill: "5. Приравнять 0",
+            fig: "parallel",
+            caption: "на x = y стрелки ∇f и ∇g параллельны",
+            title: "Производные равны нулю",
+            lines: [
+              { tex: "\\frac{\\partial L}{\\partial x} = 0", note: "Вместе с производной по $y$ это вектор $\\nabla f + \\lambda \\nabla g = 0$: градиенты параллельны, сдвиг вдоль прямой в первом порядке не меняет $f$." },
+              { tex: "2x + \\lambda = 0" },
+              { tex: "\\lambda = -2x", note: "Перенесли $2x$ в другую часть." },
+              { tex: "2y + \\lambda = 0" },
+              { tex: "\\lambda = -2y", note: "В системе два уравнения. Равенство $g = 0$ добавляют следующим шагом." }
+            ]
+          },
+          {
+            pill: "6. Ограничение",
+            fig: "system",
+            caption: "третье уравнение, та же прямая",
+            title: "Добавляем ограничение",
+            lines: [
+              { tex: "\\frac{\\partial L}{\\partial \\lambda} = x + y - 2", note: "Производная по $\\lambda$ совпадает с $g$." },
+              { tex: "x + y - 2 = 0" },
+              { tex: "x + y = 2", note: "Перенесли $-2$. Это третье уравнение системы." },
+              { tex: "2x + \\lambda = 0" },
+              { tex: "2y + \\lambda = 0", note: "Два уравнения прошлого шага. Вместе с $x + y = 2$ неизвестных три: $x$, $y$, $\\lambda$." }
+            ]
+          },
+          {
+            pill: "7. Решение",
+            fig: "bisect",
+            caption: "пунктир x = y пересекает прямую в (1, 1)",
+            title: "Решаем систему",
+            lines: [
+              { tex: "\\frac{\\partial L}{\\partial x} = 2x + \\lambda = 0" },
+              { tex: "\\frac{\\partial L}{\\partial y} = 2y + \\lambda = 0" },
+              { tex: "\\frac{\\partial L}{\\partial \\lambda} = x + y - 2 = 0", note: "Три уравнения на $x$, $y$ и $\\lambda$." },
+              { tex: "(2x + \\lambda) - (2y + \\lambda) = 0", note: "Вычли второе уравнение из первого." },
+              { tex: "2x + \\lambda - 2y - \\lambda = 0" },
+              { tex: "2x - 2y = 0", note: "$\\lambda$ сократился." },
+              { tex: "x = y", note: "На рисунке это пунктир." },
+              { tex: "x + x = 2", note: "В уравнение прямой подставили $y = x$." },
+              { tex: "2x = 2" },
+              { tex: "x = 1, \\quad y = 1" },
+              { tex: "2 \\cdot 1 + \\lambda = 0" },
+              { tex: "\\lambda = -2", note: "Взяли $\\lambda$ из уравнения $2x + \\lambda = 0$." }
+            ]
+          },
+          {
+            pill: "8. Проверка",
+            fig: "check",
+            caption: "(1, 1) лежит на прямой",
+            title: "Подстановка в ограничение",
+            lines: [
+              { tex: "g(1, 1) = 1 + 1 - 2" },
+              { tex: "g(1, 1) = 0", note: "Сумма равна нулю. Точка $(1, 1)$ лежит на прямой." }
+            ]
+          },
+          {
+            pill: "9. Характер",
+            fig: "compare",
+            caption: "f(1, 1) = 2, f(0, 2) = 4, f(3, -1) = 10",
+            title: "Минимум или нет",
+            lines: [
+              { tex: "y = 2 - x", note: "Точки прямой это $(x, 2 - x)$. Система нашла $(1, 1)$, здесь смотрим, наименьшее ли там $f$ на всей прямой." },
+              { tex: "f(x) = x^{2} + (2 - x)^{2}" },
+              { tex: "f(x) = 2(x - 1)^{2} + 2", note: "После раскрытия скобки. Читается так: насколько $x$ отошёл от $1$, возвести в квадрат, умножить на $2$ и прибавить $2$." },
+              { tex: "(x - 1)^{2} \\ge 0", note: "Квадрат равен нулю только при $x = 1$. В любой другой точке прямой он положителен и $f > 2$." },
+              { tex: "f(1) = 2(1 - 1)^{2} + 2 = 2", note: "Точка $(1, 1)$." },
+              { tex: "f(0) = 2(0 - 1)^{2} + 2 = 4", note: "Точка $(0, 2)$." },
+              { tex: "f(3) = 2(3 - 1)^{2} + 2 = 10", note: "Точка $(3, -1)$. И влево от $x = 1$, и вправо значение больше." },
+              { tex: "f(x) \\ge 2", note: "На всей прямой наименьшее значение равно $2$, только в $(1, 1)$. При удалении слагаемое $2(x - 1)^{2}$ растёт без верхней границы, максимума нет." }
+            ]
+          },
+          {
+            pill: "10. Значение f",
+            fig: "touch",
+            caption: "окружность f = 2 касается прямой",
+            title: "Значение цели",
+            lines: [
+              { tex: "f(1, 1) = 1^{2} + 1^{2}" },
+              { tex: "f(1, 1) = 1 + 1 = 2" },
+              { tex: "x^{2} + y^{2} = 2", note: "Радиус этой окружности $\\sqrt{2}$. Она касается прямой в $(1, 1)$." }
+            ]
+          },
+          {
+            pill: "11. Смысл",
+            fig: "sense",
+            caption: "(1, 1) ближайшая точка прямой к (0, 0)",
+            title: "Что получилось",
+            lines: [
+              { tex: "(1, 1), \\quad \\lambda = -2, \\quad f = 2", note: "Ответ: точка, множитель и значение цели." },
+              { tex: "f = x^{2} + y^{2}", note: "Это квадрат расстояния от $(0, 0)$. На прямой ближайшая к началу координат точка как раз $(1, 1)$." },
+              { tex: "(\\sqrt{2})^{2} = 2", note: "Расстояние от $(0, 0)$ до прямой равно $\\sqrt{2}$. Его квадрат совпал с $f(1, 1)$." },
+              { tex: "\\nabla f(1, 1) = (2, 2)", note: "Зелёная стрелка: из $(0, 0)$ через $(1, 1)$, наружу." },
+              { tex: "\\nabla g = (1, 1)", note: "Перпендикуляр к прямой, в ту же сторону." },
+              { tex: "-2 \\cdot (1, 1) = (-2, -2)", note: "Множитель $\\lambda = -2$ разворачивает эту стрелку. На рисунке она синяя." },
+              { tex: "(2, 2) + (-2, -2) = (0, 0)", note: "Стрелки одной длины и смотрят в противоположные стороны, в сумме ноль." }
+            ]
+          }
+        ];
+        const rawK = parseInt(new URLSearchParams(location.search).get("k") || "1", 10);
+        let k = Math.min(steps.length - 1, Math.max(0, (isNaN(rawK) ? 1 : rawK) - 1));
+        const pills = document.getElementById("alg-pills");
+        pills.innerHTML = steps.map(function (s, i) {
+          return "<button type='button' data-k='" + i + "'>" + s.pill + "</button>";
+        }).join("");
+
+        function scene(kind) {
+          const o = {
+            x0: -2.85, x1: 3.55, y0: -2.65, y1: 3.2, h: 460, w: 700,
+            lines: [{ b: 2, stroke: "#1f4d63", width: kind === "system" ? 3.8 : 2.7 }],
+            circles: [],
+            dashed: [],
+            arrows: [],
+            points: [{ x: 0, y: 0, fill: "#9f1239", r: 5 }],
+            marks: [{ x: 0, y: 0, text: "(0, 0)", fill: "#9f1239", dx: 10, dy: 16, size: 13 }]
+          };
+          const levels = [
+            { r: 1, text: "f = 1", x: 0.42, y: -1.18 },
+            { r: RT, text: "f = 2", x: 0.42, y: -1.68 },
+            { r: 2, text: "f = 4", x: 0.42, y: -2.28 }
+          ];
+          function addCircles(mode) {
+            levels.forEach(function (c) {
+              const isTouch = Math.abs(c.r - RT) < 0.01;
+              let stroke = "#1c1916";
+              let width = 2.2;
+              let fill = "none";
+              let label = true;
+              if (mode === "all") {
+                if (c.r === 1) fill = "#ebe4d6";
+              } else if (mode === "touch") {
+                stroke = isTouch ? "#1c1916" : "#ddd6c8";
+                width = isTouch ? 2.8 : 1.2;
+                label = isTouch;
+              } else if (mode === "compare") {
+                if (c.r === 1) return;
+                stroke = isTouch ? "#3f6212" : "#b45309";
+                width = 2.5;
+              } else if (mode === "grad") {
+                const hot = c.r === 2;
+                stroke = hot ? "#1c1916" : "#ddd6c8";
+                width = hot ? 2.6 : 1.2;
+                label = hot;
+              }
+              o.circles.push({ r: c.r, stroke: stroke, width: width, fill: fill });
+              if (label) o.marks.push({ x: c.x, y: c.y, text: c.text, fill: stroke, dx: 0, dy: 4, size: 15 });
+            });
+          }
+          o.marks.push({ x: 2.62, y: 0.78, text: "g = 0", fill: "#1f4d63", dx: 0, dy: 0, size: 15 });
+          if (kind === "levels" || kind === "count") addCircles("all");
+          if (kind === "count") {
+            o.marks.push({ x: -2.4, y: -2.15, text: "n = 2", fill: "#1c1916", dx: 0, dy: 0, size: 15 });
+            o.marks.push({ x: 2.15, y: 1.45, text: "m = 1", fill: "#1f4d63", dx: 0, dy: 0, size: 15 });
+          }
+          if (kind === "grad") {
+            addCircles("grad");
+            o.points.push({ x: 0, y: 2, fill: "#b45309", r: 6 });
+            o.marks.push({ x: 0, y: 2, text: "(0, 2)", fill: "#b45309", dx: -58, dy: -6, size: 13 });
+            o.arrows.push({ x1: 0, y1: 2, x2: 0, y2: 2.55, color: "#3f6212" });
+            o.arrows.push({ x1: 0, y1: 2, x2: 0.72, y2: 2.72, color: "#1f4d63" });
+            o.marks.push({ x: 0, y: 2.55, text: "∇f", fill: "#3f6212", dx: -34, dy: 4, size: 14 });
+            o.marks.push({ x: 0.72, y: 2.72, text: "∇g", fill: "#1f4d63", dx: 8, dy: 2, size: 14 });
+          }
+          if (kind === "parallel") {
+            addCircles("touch");
+            o.dashed.push({ x1: -1.8, y1: -1.8, x2: 2.35, y2: 2.35, stroke: "#b45309" });
+            o.marks.push({ x: -1.55, y: -1.15, text: "x = y", fill: "#b45309", dx: 0, dy: 0, size: 14 });
+            o.points.push({ x: 1, y: 1, fill: "#3f6212", r: 6 });
+            o.arrows.push({ x1: 1.14, y1: 0.86, x2: 1.7, y2: 1.42, color: "#3f6212" });
+            o.arrows.push({ x1: 0.86, y1: 1.14, x2: 1.42, y2: 1.7, color: "#1f4d63" });
+            o.marks.push({ x: 1.7, y: 1.42, text: "∇f", fill: "#3f6212", dx: 8, dy: 14, size: 14 });
+            o.marks.push({ x: 1.42, y: 1.7, text: "∇g", fill: "#1f4d63", dx: 8, dy: -4, size: 14 });
+          }
+          if (kind === "system") addCircles("all");
+          if (kind === "bisect" || kind === "check") {
+            addCircles("touch");
+            o.dashed.push({ x1: -2.1, y1: -2.1, x2: 2.55, y2: 2.55, stroke: "#b45309" });
+            o.marks.push({ x: 1.85, y: 2.45, text: "x = y", fill: "#b45309", dx: 0, dy: 0, size: 14 });
+            o.points.push({ x: 1, y: 1, fill: "#3f6212", r: 7 });
+            o.marks.push({ x: 1, y: 1, text: "(1, 1)", fill: "#3f6212", dx: 12, dy: -6, size: 14 });
+          }
+          if (kind === "compare") {
+            o.x0 = -3.2;
+            o.x1 = 4.6;
+            o.y0 = -2.8;
+            o.y1 = 3.5;
+            addCircles("compare");
+            o.points.push({ x: 1, y: 1, fill: "#3f6212", r: 7 });
+            o.points.push({ x: 0, y: 2, fill: "#b45309", r: 6 });
+            o.points.push({ x: 3, y: -1, fill: "#9f1239", r: 6 });
+            o.marks.push({ x: 1, y: 1, text: "f = 2", fill: "#3f6212", dx: 12, dy: 16, size: 14 });
+            o.marks.push({ x: 0, y: 2, text: "f = 4", fill: "#b45309", dx: -46, dy: -6, size: 14 });
+            o.marks.push({ x: 3, y: -1, text: "f = 10", fill: "#9f1239", dx: 8, dy: -8, size: 14 });
+          }
+          if (kind === "touch" || kind === "sense") {
+            addCircles("touch");
+            o.points.push({ x: 1, y: 1, fill: "#3f6212", r: 7 });
+            o.marks.push({ x: 1, y: 1, text: "(1, 1)", fill: "#3f6212", dx: 14, dy: -14, size: 14 });
+            o.dashed.push({ x1: 0, y1: 0, x2: 1, y2: 1, stroke: "#3f6212" });
+            o.marks.push({ x: 0.78, y: 0.28, text: "√2", fill: "#3f6212", dx: 0, dy: 0, size: 15 });
+          }
+          if (kind === "sense") {
+            o.arrows.push({ x1: 1, y1: 1, x2: 1.72, y2: 1.72, color: "#3f6212" });
+            o.arrows.push({ x1: 1, y1: 1, x2: 0.28, y2: 0.28, color: "#1f4d63" });
+            o.marks.push({ x: 1.72, y: 1.72, text: "∇f", fill: "#3f6212", dx: 6, dy: -8, size: 14 });
+            o.marks.push({ x: -0.85, y: 0.55, text: "λ∇g", fill: "#1f4d63", dx: 0, dy: 0, size: 14 });
+          }
+          return plane(o);
+        }
+
+        function pin() {
+          let html = "<h3>Постановка</h3>" +
+            "<div class='dline'>" + toMathML("f(x, y) = x^{2} + y^{2}") + "</div>" +
+            "<div class='dline'>" + toMathML("g(x, y) = x + y - 2 = 0") + "</div>";
+          if (k >= 3 && k < 6) {
+            html += "<h3 class='pin-next'>Функция Лагранжа</h3>" +
+              "<div class='dline'>" + toMathML("L = x^{2} + y^{2} + \\lambda x + \\lambda y - 2\\lambda") + "</div>";
+          }
+          if (k >= 6) {
+            html += "<h3 class='pin-next'>Система</h3>" +
+              "<div class='dline'>" + toMathML("2x + \\lambda = 0") + "</div>" +
+              "<div class='dline'>" + toMathML("2y + \\lambda = 0") + "</div>" +
+              "<div class='dline'>" + toMathML("x + y - 2 = 0") + "</div>";
+          }
+          document.getElementById("alg-pin").innerHTML = html;
+        }
+
+        function paint() {
+          const s = steps[k];
+          pin();
+          let html = "<h3>" + s.title + "</h3><p class='step-k'>шаг " + (k + 1) + " из 11</p>";
+          s.lines.forEach(function (ln) {
+            html += "<div class='dline'>" + toMathML(ln.tex);
+            if (ln.note) html += "<p class='sayline'>" + rich(ln.note) + "</p>";
+            html += "</div>";
+          });
+          document.getElementById("alg-card").innerHTML = html;
+          document.getElementById("alg-fig").innerHTML = scene(s.fig);
+          document.getElementById("alg-legend").innerHTML =
+            "<span><i class='sw' style='background:#1c1916'></i>окружность f = const</span>" +
+            "<span><i class='sw' style='background:#1f4d63'></i>прямая g = 0</span>" +
+            "<span>" + s.caption + "</span>";
+          document.getElementById("alg-cnt").textContent = (k + 1) + " / " + steps.length;
+          document.getElementById("rb-prev").disabled = k === 0;
+          document.getElementById("rb-next").disabled = k === steps.length - 1;
+          pills.querySelectorAll("button").forEach(function (b) {
+            b.classList.toggle("on", +b.getAttribute("data-k") === k);
+          });
+        }
+        document.getElementById("rb-prev").onclick = function () { if (k > 0) { k--; paint(); } };
+        document.getElementById("rb-next").onclick = function () { if (k < steps.length - 1) { k++; paint(); } };
+        pills.onclick = function (e) {
+          const b = e.target.closest("button[data-k]");
+          if (!b) return;
+          k = +b.getAttribute("data-k");
+          paint();
+        };
+        paint();
+      }
+    },
+    {
+      id: "xy",
+      phase: "Пример xy",
+      toc: "Пример xy",
+      title: "Экстремумы xy на окружности",
+      lead: "Тот же алгоритм на втором примере: экстремумы xy при x² + y² = 1. Стрелки листают шаги.",
+      html: `
+        <div class="rebuild-nav">
+          <button class="nav-btn" id="rb-prev" type="button">←</button>
+          <button class="nav-btn" id="rb-next" type="button">→</button>
+          <span class="cnt" id="alg-cnt"></span>
+          <span class="hint">стрелки листают шаги, справа весь счёт шага</span>
+        </div>
+        <div class="idea-pills algo" id="alg-pills"></div>
+        <div class="alg-layout">
+          <div>
+            <div class="fig" id="alg-fig"></div>
+            <div class="geom-legend" id="alg-legend"></div>
+          </div>
+          <div class="alg-side">
+            <div class="pin" id="alg-pin"></div>
+            <div class="card deriv" id="alg-card"></div>
+          </div>
+        </div>`,
+      onEnter: function () {
+        const A = Math.SQRT1_2;
+        const steps = [
+          {
+            pill: "1. Запись",
+            fig: "levels",
+            caption: "гиперболы xy = const и окружность",
+            title: "Функция и ограничение",
+            lines: [
+              { tex: "f(x, y) = xy", note: "Цель. Линии уровня $xy = c$ это гиперболы. На рисунке ветви $c = 1/2$ и $c = -1/2$." },
+              { tex: "g(x, y) = x^{2} + y^{2} - 1", note: "Ограничение $x^{2} + y^{2} = 1$ перенесли в нуль. На рисунке это окружность радиуса 1." },
+              { tex: "g(0, 0) = 0 + 0 - 1 = -1 \\neq 0", note: "В начале координат $f = 0$. Подстановка в $g$ даёт $-1$, точка на окружности не лежит." }
+            ]
+          },
+          {
+            pill: "2. n и m",
+            fig: "count",
+            caption: "две оси, одна окружность",
+            title: "Сколько неизвестных",
+            lines: [
+              { tex: "n = 2", note: "Переменные $x$ и $y$." },
+              { tex: "m = 1", note: "Равенство одно: $g = 0$." },
+              { tex: "n + m = 3", note: "Неизвестные $x$, $y$ и множитель $\\lambda$." }
+            ]
+          },
+          {
+            pill: "3. Функция L",
+            fig: "levels",
+            caption: "L собирается из f и g",
+            title: "Функция Лагранжа",
+            lines: [
+              { tex: "L = f + \\lambda g", note: "Перед $\\lambda$ стоит плюс. Этот знак сохраняем до конца задачи." },
+              { tex: "L = xy + \\lambda (x^{2} + y^{2} - 1)", note: "Подставили $f$ и $g$." },
+              { tex: "\\lambda (x^{2} + y^{2} - 1) = \\lambda x^{2} + \\lambda y^{2} - \\lambda", note: "$\\lambda$ умножили на $x^{2}$, на $y^{2}$ и на $-1$." },
+              { tex: "L = xy + \\lambda x^{2} + \\lambda y^{2} - \\lambda", note: "Сумма: дальше каждое слагаемое дифференцируется отдельно." }
+            ]
+          },
+          {
+            pill: "4. Производные",
+            fig: "grad",
+            caption: "в точке (1, 0) стрелки под прямым углом",
+            title: "Производные по x и по y",
+            lines: [
+              { tex: "\\frac{\\partial}{\\partial x}(xy) = y, \\quad \\frac{\\partial}{\\partial x}(\\lambda x^{2}) = 2\\lambda x", note: "$\\lambda y^{2}$ и $-\\lambda$ от $x$ не зависят." },
+              { tex: "\\frac{\\partial L}{\\partial x} = y + 2\\lambda x, \\quad \\frac{\\partial L}{\\partial y} = x + 2\\lambda y", note: "По $y$: из $xy$ получается $x$, из $\\lambda y^{2}$ получается $2\\lambda y$." },
+              { tex: "\\frac{\\partial g}{\\partial x} = 2x", note: "$g = x^{2} + y^{2} - 1$. Производная $x^{2}$ равна $2x$. Слагаемые $y^{2}$ и $-1$ от $x$ не зависят." },
+              { tex: "\\frac{\\partial g}{\\partial y} = 2y", note: "При $y$ так же: производная $y^{2}$ равна $2y$." },
+              { tex: "\\nabla g = (2x, 2y), \\quad \\nabla f = (y, x)", note: "В точке $(1, 0)$ на рисунке $\\nabla f = (0, 1)$ вертикален, $\\nabla g = (2, 0)$ горизонтален." }
+            ]
+          },
+          {
+            pill: "5. Приравнять 0",
+            fig: "parallel",
+            caption: "нуль производных: стрелки параллельны",
+            title: "Производные равны нулю",
+            lines: [
+              { tex: "\\frac{\\partial L}{\\partial x} = 0", note: "Вместе с производной по $y$ это вектор $\\nabla f + \\lambda \\nabla g = 0$: градиенты параллельны." },
+              { tex: "y + 2\\lambda x = 0" },
+              { tex: "x + 2\\lambda y = 0", note: "В системе два уравнения. Окружность $x^{2} + y^{2} = 1$ добавляют следующим шагом." }
+            ]
+          },
+          {
+            pill: "6. Ограничение",
+            fig: "system",
+            caption: "третье уравнение, та же окружность",
+            title: "Добавляем ограничение",
+            lines: [
+              { tex: "\\frac{\\partial L}{\\partial \\lambda} = x^{2} + y^{2} - 1", note: "Производная по $\\lambda$ совпадает с $g$." },
+              { tex: "x^{2} + y^{2} - 1 = 0" },
+              { tex: "x^{2} + y^{2} = 1", note: "Это третье уравнение. Вместе с двумя предыдущими неизвестных три: $x$, $y$, $\\lambda$." }
+            ]
+          },
+          {
+            pill: "7. Решение",
+            fig: "bisect",
+            caption: "прямые y = x и y = -x пересекают окружность",
+            title: "Решаем систему",
+            lines: [
+              { tex: "y + 2\\lambda x = 0" },
+              { tex: "x + 2\\lambda y = 0" },
+              { tex: "x^{2} + y^{2} = 1", note: "Если $x = 0$, из первого уравнения $y = 0$. Получается $0 = 1$, на окружности такой точки нет. То же при $y = 0$." },
+              { tex: "y^{2} + 2\\lambda xy = 0", note: "Первое уравнение умножили на $y$." },
+              { tex: "x^{2} + 2\\lambda xy = 0", note: "Второе умножили на $x$." },
+              { tex: "y^{2} - x^{2} = 0", note: "Вычли одно из другого. Слагаемое с $\\lambda$ сократилось." },
+              { tex: "(y - x)(y + x) = 0" },
+              { tex: "y = x, \\quad y = -x", note: "Две возможности. На рисунке две пунктирные прямые." },
+              { tex: "2x^{2} = 1, \\quad x = \\pm \\frac{1}{\\sqrt{2}}, \\quad y = x", note: "В окружность подставили $y = x$. Из $x + 2\\lambda x = 0$ берём $\\lambda = -1/2$. Знаки $x$ и $y$ одинаковые." },
+              { tex: "2x^{2} = 1, \\quad x = \\pm \\frac{1}{\\sqrt{2}}, \\quad y = -x", note: "Подставили $y = -x$. Из $-x + 2\\lambda x = 0$ берём $\\lambda = 1/2$. Знаки $x$ и $y$ разные." }
+            ]
+          },
+          {
+            pill: "8. Проверка",
+            fig: "check",
+            caption: "все четыре точки лежат на окружности",
+            title: "Подстановка в ограничение",
+            lines: [
+              { tex: "(\\frac{1}{\\sqrt{2}})^{2} + (\\frac{1}{\\sqrt{2}})^{2} = \\frac{1}{2} + \\frac{1}{2} = 1", note: "Пара с одинаковыми знаками. Квадрат минуса тот же, поэтому остальные три точки дают ту же сумму." },
+              { tex: "g = 0", note: "Все четыре точки лежат на окружности." }
+            ]
+          },
+          {
+            pill: "9. Характер",
+            fig: "compare",
+            caption: "на окружности xy от -1/2 до 1/2",
+            title: "Минимум и максимум",
+            lines: [
+              { tex: "(x - y)^{2} \\ge 0", note: "Квадрат неотрицателен: $x^{2} + y^{2} \\ge 2xy$." },
+              { tex: "1 \\ge 2xy", note: "На окружности $x^{2} + y^{2} = 1$, поэтому $xy \\le 1/2$." },
+              { tex: "(x + y)^{2} \\ge 0", note: "Так же: $x^{2} + y^{2} \\ge -2xy$, значит $xy \\ge -1/2$." },
+              { tex: "xy = \\frac{1}{2}", note: "При $y = x$ произведение равно $1/2$. Верхняя граница достигается, это максимум." },
+              { tex: "xy = -\\frac{1}{2}", note: "При $y = -x$ произведение равно $-1/2$. Нижняя граница достигается, это минимум." },
+              { tex: "xy = 0", note: "Точка $(1, 0)$ тоже на окружности. Там значение между $-1/2$ и $1/2$." }
+            ]
+          },
+          {
+            pill: "10. Значение f",
+            fig: "touch",
+            caption: "гиперболы касаются окружности в четырёх точках",
+            title: "Значения цели",
+            lines: [
+              { tex: "f(\\frac{1}{\\sqrt{2}}, \\frac{1}{\\sqrt{2}}) = \\frac{1}{2}", note: "И в противоположной точке $(-\\frac{1}{\\sqrt{2}}, -\\frac{1}{\\sqrt{2}})$ то же значение. Это максимум." },
+              { tex: "f(\\frac{1}{\\sqrt{2}}, -\\frac{1}{\\sqrt{2}}) = -\\frac{1}{2}", note: "И в точке $(-\\frac{1}{\\sqrt{2}}, \\frac{1}{\\sqrt{2}})$ то же значение. Это минимум." },
+              { tex: "xy = \\pm \\frac{1}{2}", note: "Гиперболы этих уровней касаются окружности как раз в найденных точках." }
+            ]
+          },
+          {
+            pill: "11. Смысл",
+            fig: "sense",
+            caption: "в точке максимума стрелки противоположны",
+            title: "Что получилось",
+            lines: [
+              { tex: "xy = \\frac{1}{2}, \\quad xy = -\\frac{1}{2}", note: "Максимум в двух точках с одинаковыми знаками, минимум в двух точках с разными знаками." },
+              { tex: "\\lambda = -\\frac{1}{2}, \\quad \\lambda = \\frac{1}{2}", note: "На максимуме множитель $-1/2$, на минимуме $1/2$." },
+              { tex: "\\nabla f = (\\frac{1}{\\sqrt{2}}, \\frac{1}{\\sqrt{2}})", note: "В точке $(\\frac{1}{\\sqrt{2}}, \\frac{1}{\\sqrt{2}})$ зелёная стрелка смотрит из центра наружу." },
+              { tex: "-\\frac{1}{2} \\cdot (\\sqrt{2}, \\sqrt{2}) = (-\\frac{1}{\\sqrt{2}}, -\\frac{1}{\\sqrt{2}})", note: "Множитель $\\lambda = -1/2$ разворачивает перпендикуляр к окружности. На рисунке эта стрелка синяя." },
+              { tex: "(\\frac{1}{\\sqrt{2}}, \\frac{1}{\\sqrt{2}}) + (-\\frac{1}{\\sqrt{2}}, -\\frac{1}{\\sqrt{2}}) = (0, 0)", note: "Стрелки одной длины и смотрят в противоположные стороны, в сумме ноль." }
+            ]
+          }
+        ];
+        const rawK = parseInt(new URLSearchParams(location.search).get("k") || "1", 10);
+        let k = Math.min(steps.length - 1, Math.max(0, (isNaN(rawK) ? 1 : rawK) - 1));
+        const pills = document.getElementById("alg-pills");
+        pills.innerHTML = steps.map(function (s, i) {
+          return "<button type='button' data-k='" + i + "'>" + s.pill + "</button>";
+        }).join("");
+
+        function hyp(c, color, width) {
+          const chunks = [];
+          let pts = [];
+          const lim = 1.7;
+          for (let i = 0; i <= 240; i++) {
+            const x = -lim + (2 * lim * i) / 240;
+            if (Math.abs(x) < 0.08) {
+              if (pts.length > 1) chunks.push(pts);
+              pts = [];
+              continue;
+            }
+            const y = c / x;
+            if (y < -lim || y > lim) {
+              if (pts.length > 1) chunks.push(pts);
+              pts = [];
+              continue;
+            }
+            pts.push([x, y]);
+          }
+          if (pts.length > 1) chunks.push(pts);
+          return chunks.map(function (p) { return { pts: p, stroke: color, width: width || 1.8 }; });
+        }
+
+        function scene(kind) {
+          const o = {
+            x0: -1.72, x1: 1.72, y0: -1.72, y1: 1.72, h: 440, w: 640,
+            circles: [{ r: 1, stroke: "#1f4d63", width: kind === "system" ? 3.4 : 2.5 }],
+            paths: [],
+            dashed: [],
+            arrows: [],
+            points: [{ x: 0, y: 0, fill: "#9f1239", r: 4.5 }],
+            marks: [{ x: 0, y: 0, text: "(0, 0)", fill: "#9f1239", dx: 8, dy: 14, size: 13 }]
+          };
+          function addHyps(mode, labels) {
+            if (mode === "both" || mode === "max") o.paths = o.paths.concat(hyp(0.5, "#3f6212", mode === "max" ? 2.4 : 1.8));
+            if (mode === "both" || mode === "min") o.paths = o.paths.concat(hyp(-0.5, "#9f1239", mode === "min" ? 2.4 : 1.8));
+            if (labels) {
+              o.marks.push({ x: 1.22, y: 0.95, text: "xy = 1/2", fill: "#3f6212", dx: 0, dy: 0, size: 13 });
+              o.marks.push({ x: 1.22, y: -1.15, text: "xy = -1/2", fill: "#9f1239", dx: 0, dy: 0, size: 13 });
+            }
+          }
+          function four(labeled) {
+            const pts = [
+              { x: A, y: A, fill: "#3f6212", text: "1/2", dx: 8, dy: -10 },
+              { x: -A, y: -A, fill: "#3f6212", text: "1/2", dx: -26, dy: 16 },
+              { x: A, y: -A, fill: "#9f1239", text: "\u22121/2", dx: 8, dy: 16 },
+              { x: -A, y: A, fill: "#9f1239", text: "\u22121/2", dx: -34, dy: -8 }
+            ];
+            pts.forEach(function (p) {
+              o.points.push({ x: p.x, y: p.y, fill: p.fill, r: 6 });
+              if (labeled) o.marks.push({ x: p.x, y: p.y, text: p.text, fill: p.fill, dx: p.dx, dy: p.dy, size: 13 });
+            });
+          }
+          function diagonals() {
+            o.dashed.push({ x1: -1.45, y1: -1.45, x2: 1.45, y2: 1.45, stroke: "#b45309" });
+            o.dashed.push({ x1: -1.45, y1: 1.45, x2: 1.45, y2: -1.45, stroke: "#b45309" });
+            o.marks.push({ x: -1.35, y: -1.05, text: "y = x", fill: "#b45309", dx: 0, dy: 0, size: 13 });
+            o.marks.push({ x: -1.45, y: 1.15, text: "y = -x", fill: "#b45309", dx: 0, dy: 0, size: 13 });
+          }
+          o.marks.push({ x: 1.08, y: 0.55, text: "g = 0", fill: "#1f4d63", dx: 0, dy: 0, size: 14 });
+          if (kind === "levels" || kind === "count") addHyps("both", true);
+          if (kind === "count") {
+            o.marks.push({ x: -1.45, y: -1.4, text: "n = 2", fill: "#1c1916", dx: 0, dy: 0, size: 14 });
+            o.marks.push({ x: 1.05, y: 1.35, text: "m = 1", fill: "#1f4d63", dx: 0, dy: 0, size: 14 });
+          }
+          if (kind === "grad") {
+            o.points.push({ x: 1, y: 0, fill: "#b45309", r: 6 });
+            o.marks.push({ x: 1, y: 0, text: "(1, 0)", fill: "#b45309", dx: -52, dy: 16, size: 13 });
+            o.arrows.push({ x1: 1, y1: 0, x2: 1, y2: 0.55, color: "#3f6212" });
+            o.arrows.push({ x1: 1, y1: 0, x2: 1.55, y2: 0, color: "#1f4d63" });
+            o.marks.push({ x: 1, y: 0.55, text: "\u2207f", fill: "#3f6212", dx: 8, dy: -2, size: 14 });
+            o.marks.push({ x: 1.55, y: 0, text: "\u2207g", fill: "#1f4d63", dx: 4, dy: 14, size: 14 });
+          }
+          if (kind === "parallel") {
+            o.points.push({ x: A, y: A, fill: "#3f6212", r: 6 });
+            o.arrows.push({ x1: A + 0.08, y1: A - 0.08, x2: A + 0.42, y2: A + 0.26, color: "#3f6212" });
+            o.arrows.push({ x1: A - 0.08, y1: A + 0.08, x2: A + 0.26, y2: A + 0.42, color: "#1f4d63" });
+            o.marks.push({ x: A + 0.42, y: A + 0.26, text: "\u2207f", fill: "#3f6212", dx: 6, dy: 12, size: 14 });
+            o.marks.push({ x: A + 0.26, y: A + 0.42, text: "\u2207g", fill: "#1f4d63", dx: 6, dy: -4, size: 14 });
+          }
+          if (kind === "bisect" || kind === "check") {
+            diagonals();
+            four(kind === "check");
+          }
+          if (kind === "compare") {
+            addHyps("both", false);
+            four(true);
+            o.points.push({ x: 1, y: 0, fill: "#b45309", r: 5 });
+            o.marks.push({ x: 1, y: 0, text: "0", fill: "#b45309", dx: 8, dy: 14, size: 13 });
+          }
+          if (kind === "touch" || kind === "sense") {
+            addHyps("both", false);
+            four(true);
+          }
+          if (kind === "sense") {
+            o.arrows.push({ x1: A, y1: A, x2: A + 0.38, y2: A + 0.38, color: "#3f6212" });
+            o.arrows.push({ x1: A, y1: A, x2: A - 0.38, y2: A - 0.38, color: "#1f4d63" });
+            o.marks.push({ x: A + 0.38, y: A + 0.38, text: "\u2207f", fill: "#3f6212", dx: 4, dy: -6, size: 14 });
+            o.marks.push({ x: A - 0.38, y: A - 0.38, text: "\u03bb\u2207g", fill: "#1f4d63", dx: -36, dy: 14, size: 13 });
+          }
+          return plane(o);
+        }
+
+        function pin() {
+          let html = "<h3>Постановка</h3>" +
+            "<div class='dline'>" + toMathML("f(x, y) = xy") + "</div>" +
+            "<div class='dline'>" + toMathML("g(x, y) = x^{2} + y^{2} - 1 = 0") + "</div>";
+          if (k >= 3 && k < 6) {
+            html += "<h3 class='pin-next'>Функция Лагранжа</h3>" +
+              "<div class='dline'>" + toMathML("L = xy + \\lambda x^{2} + \\lambda y^{2} - \\lambda") + "</div>";
+          }
+          if (k >= 6) {
+            html += "<h3 class='pin-next'>Система</h3>" +
+              "<div class='dline'>" + toMathML("y + 2\\lambda x = 0") + "</div>" +
+              "<div class='dline'>" + toMathML("x + 2\\lambda y = 0") + "</div>" +
+              "<div class='dline'>" + toMathML("x^{2} + y^{2} = 1") + "</div>";
+          }
+          document.getElementById("alg-pin").innerHTML = html;
+        }
+
+        function paint() {
+          const s = steps[k];
+          pin();
+          let html = "<h3>" + s.title + "</h3><p class='step-k'>шаг " + (k + 1) + " из 11</p>";
+          s.lines.forEach(function (ln) {
+            html += "<div class='dline'>" + toMathML(ln.tex);
+            if (ln.note) html += "<p class='sayline'>" + rich(ln.note) + "</p>";
+            html += "</div>";
+          });
+          document.getElementById("alg-card").innerHTML = html;
+          document.getElementById("alg-fig").innerHTML = scene(s.fig);
+          document.getElementById("alg-legend").innerHTML =
+            "<span><i class='sw' style='background:#1f4d63'></i>окружность g = 0</span>" +
+            "<span><i class='sw' style='background:#3f6212'></i>xy = 1/2</span>" +
+            "<span><i class='sw' style='background:#9f1239'></i>xy = -1/2</span>" +
+            "<span>" + s.caption + "</span>";
+          document.getElementById("alg-cnt").textContent = (k + 1) + " / " + steps.length;
+          document.getElementById("rb-prev").disabled = k === 0;
+          document.getElementById("rb-next").disabled = k === steps.length - 1;
+          pills.querySelectorAll("button").forEach(function (b) {
+            b.classList.toggle("on", +b.getAttribute("data-k") === k);
+          });
+        }
+        document.getElementById("rb-prev").onclick = function () { if (k > 0) { k--; paint(); } };
+        document.getElementById("rb-next").onclick = function () { if (k < steps.length - 1) { k++; paint(); } };
+        pills.onclick = function (e) {
+          const b = e.target.closest("button[data-k]");
+          if (!b) return;
+          k = +b.getAttribute("data-k");
+          paint();
+        };
+        paint();
+      }
+    },
+    {
+      id: "ineq",
+      phase: "Неравенство",
+      toc: "Неравенство",
+      title: "Минимум в полуплоскости",
+      lead: "Тот же разбор на примере с неравенством: минимум (x - 2)² + (y - 1)² при x + y ≤ 2. Закрашена допустимая область. Стрелки листают шаги.",
+      html: `
+        <div class="rebuild-nav">
+          <button class="nav-btn" id="rb-prev" type="button">←</button>
+          <button class="nav-btn" id="rb-next" type="button">→</button>
+          <span class="cnt" id="alg-cnt"></span>
+          <span class="hint">стрелки листают шаги, справа весь счёт шага</span>
+        </div>
+        <div class="idea-pills algo" id="alg-pills"></div>
+        <div class="alg-layout">
+          <div>
+            <div class="fig" id="alg-fig"></div>
+            <div class="geom-legend" id="alg-legend"></div>
+          </div>
+          <div class="alg-side">
+            <div class="pin" id="alg-pin"></div>
+            <div class="card deriv" id="alg-card"></div>
+          </div>
+        </div>`,
+      onEnter: function () {
+        const Rtouch = Math.SQRT1_2;
+        const steps = [
+          {
+            pill: "1. Запись",
+            fig: "levels",
+            caption: "окружности вокруг (2, 1) и закрашенная полуплоскость",
+            title: "Функция и ограничение",
+            lines: [
+              { tex: "f(x, y) = (x - 2)^{2} + (y - 1)^{2}", note: "Цель. Это квадрат расстояния до точки $(2, 1)$. Линии уровня окружности с этим центром. Меньшая на рисунке не доходит до прямой, большая её касается." },
+              { tex: "g(x, y) = x + y - 2", note: "Ограничение $x + y \\le 2$. Закрашена область $g \\le 0$. Прямая это граница $g = 0$." },
+              { tex: "g(2, 1) = 2 + 1 - 2 = 1 > 0", note: "Без ограничения минимум $f$ был бы в $(2, 1)$, там $f = 0$. Подстановка в $g$ даёт $1$, точка лежит вне закраски." }
+            ]
+          },
+          {
+            pill: "2. n и m",
+            fig: "count",
+            caption: "две оси, одна граница",
+            title: "Сколько неизвестных",
+            lines: [
+              { tex: "n = 2", note: "Переменные $x$ и $y$." },
+              { tex: "m = 1", note: "Неравенство одно: $g \\le 0$." },
+              { tex: "x, \\quad y, \\quad \\mu", note: "На границе неизвестных три, появляется множитель $\\mu$. Внутри закраски множитель равен нулю, остаются $x$ и $y$. Оба случая считаем отдельно." }
+            ]
+          },
+          {
+            pill: "3. Функция L",
+            fig: "levels",
+            caption: "L собирается из f и g",
+            title: "Функция Лагранжа",
+            lines: [
+              { tex: "L = f + \\mu g", note: "Перед $\\mu$ стоит плюс. Этот знак сохраняем до конца задачи." },
+              { tex: "L = (x - 2)^{2} + (y - 1)^{2} + \\mu (x + y - 2)", note: "Подставили выражения $f$ и $g$." },
+              { tex: "\\mu (x + y - 2) = \\mu x + \\mu y - 2\\mu", note: "$\\mu$ умножили на $x$, на $y$ и на $-2$." },
+              { tex: "L = (x - 2)^{2} + (y - 1)^{2} + \\mu x + \\mu y - 2\\mu", note: "Сумма: дальше каждое слагаемое дифференцируется отдельно." }
+            ]
+          },
+          {
+            pill: "4. Производные",
+            fig: "grad",
+            caption: "в точке (0, 2) стрелки не параллельны",
+            title: "Производные по x и по y",
+            lines: [
+              { tex: "\\frac{\\partial}{\\partial x}((x - 2)^{2}) = 2(x - 2), \\quad \\frac{\\partial}{\\partial x}(\\mu x) = \\mu", note: "$(y - 1)^{2}$, $\\mu y$ и $-2\\mu$ от $x$ не зависят." },
+              { tex: "\\frac{\\partial L}{\\partial x} = 2(x - 2) + \\mu, \\quad \\frac{\\partial L}{\\partial y} = 2(y - 1) + \\mu" },
+              { tex: "\\frac{\\partial g}{\\partial x} = 1", note: "$g = x + y - 2$. При $x$ коэффициент 1, слагаемые $y$ и $-2$ от $x$ не зависят. $\\mu$ здесь нет." },
+              { tex: "\\frac{\\partial g}{\\partial y} = 1", note: "При $y$ коэффициент 1, слагаемые $x$ и $-2$ от $y$ не зависят." },
+              { tex: "\\nabla g = (1, 1)" },
+              { tex: "\\nabla f = (2(x - 2), 2(y - 1))", note: "В точке $(0, 2)$ на рисунке $\\nabla f = (-4, 2)$, $\\nabla g = (1, 1)$. Стрелки не параллельны." }
+            ]
+          },
+          {
+            pill: "5. Приравнять 0",
+            fig: "parallel",
+            caption: "на прямой x - y = 1 стрелки параллельны",
+            title: "Производные равны нулю",
+            lines: [
+              { tex: "\\frac{\\partial L}{\\partial x} = 0", note: "Вместе с производной по $y$ это вектор $\\nabla f + \\mu \\nabla g = 0$: градиенты параллельны, сдвиг вдоль границы в первом порядке не меняет $f$." },
+              { tex: "2(x - 2) + \\mu = 0" },
+              { tex: "2(y - 1) + \\mu = 0" },
+              { tex: "(x - 2) - (y - 1) = 0", note: "Вычли второе уравнение из первого. $\\mu$ сократился." },
+              { tex: "x - y = 1", note: "На рисунке это пунктир, он проходит через $(2, 1)$. Случай внутри области и саму границу разбираем следующими шагами." }
+            ]
+          },
+          {
+            pill: "6. Два случая",
+            fig: "cases",
+            caption: "внутри закраски или на прямой",
+            title: "Произведение множителя и ограничения",
+            lines: [
+              { tex: "\\mu g = 0", note: "Произведение равно нулю, когда $\\mu = 0$ или $g = 0$." },
+              { tex: "\\mu = 0", note: "Внутри закраски ограничение в производные не входит." },
+              { tex: "g = 0", note: "Граница, прямая на рисунке." },
+              { tex: "g \\le 0", note: "Точка должна лежать в закраске или на прямой. Внешнюю часть отбрасываем." },
+              { tex: "\\mu \\ge 0", note: "Знак множителя проверяем после того, как он найден. Стационарность, допустимость, этот знак и произведение $\\mu g = 0$ вместе называют условиями Каруша, Куна и Таккера." }
+            ]
+          },
+          {
+            pill: "7. Внутри",
+            fig: "inside",
+            caption: "(2, 1) вне закраски",
+            title: "Случай внутри области",
+            lines: [
+              { tex: "\\mu = 0" },
+              { tex: "2(x - 2) = 0", note: "Из $\\frac{\\partial L}{\\partial x} = 0$ при $\\mu = 0$." },
+              { tex: "x = 2" },
+              { tex: "2(y - 1) = 0" },
+              { tex: "y = 1" },
+              { tex: "g(2, 1) = 1 > 0", note: "Точка $(2, 1)$ вне закраски. Внутри области допустимой стационарной точки нет, остаётся граница." }
+            ]
+          },
+          {
+            pill: "8. Граница",
+            fig: "bisect",
+            caption: "пунктир пересекает прямую в (3/2, 1/2)",
+            title: "Решаем систему на границе",
+            lines: [
+              { tex: "2(x - 2) + \\mu = 0" },
+              { tex: "2(y - 1) + \\mu = 0" },
+              { tex: "x + y - 2 = 0", note: "Три уравнения на $x$, $y$ и $\\mu$." },
+              { tex: "x - y = 1", note: "Пунктир с шага, где производные приравняли нулю." },
+              { tex: "x + y = 2", note: "Граница. Складываем с $x - y = 1$." },
+              { tex: "2x = 3" },
+              { tex: "x = \\frac{3}{2}, \\quad y = \\frac{1}{2}" },
+              { tex: "2(\\frac{3}{2} - 2) + \\mu = 0", note: "$\\frac{3}{2} - 2 = -\\frac{1}{2}$, умножили на 2 и получили $-1$." },
+              { tex: "\\mu = 1" }
+            ]
+          },
+          {
+            pill: "9. Проверка",
+            fig: "check",
+            caption: "точка на границе, множитель положительный",
+            title: "Подстановка",
+            lines: [
+              { tex: "g(\\frac{3}{2}, \\frac{1}{2}) = \\frac{3}{2} + \\frac{1}{2} - 2", note: "$\\frac{3}{2} + \\frac{1}{2} = 2$." },
+              { tex: "g(\\frac{3}{2}, \\frac{1}{2}) = 0", note: "Точка лежит на границе." },
+              { tex: "\\mu = 1 \\ge 0", note: "Множитель неотрицательный. Для минимума при плюсе перед $\\mu$ нужен именно такой знак." }
+            ]
+          },
+          {
+            pill: "10. Характер",
+            fig: "compare",
+            caption: "на границе и внутри значение не меньше 1/2",
+            title: "Минимум или нет",
+            lines: [
+              { tex: "y = 2 - x", note: "Точки границы это $(x, 2 - x)$. Система нашла $(\\frac{3}{2}, \\frac{1}{2})$, здесь смотрим, наименьшее ли там $f$." },
+              { tex: "f(x) = (x - 2)^{2} + (1 - x)^{2}" },
+              { tex: "f(x) = 2(x - \\frac{3}{2})^{2} + \\frac{1}{2}", note: "После раскрытия скобок. Насколько $x$ отошёл от $\\frac{3}{2}$, возвести в квадрат, умножить на 2 и прибавить $\\frac{1}{2}$." },
+              { tex: "(x - \\frac{3}{2})^{2} \\ge 0", note: "Квадрат равен нулю только при $x = \\frac{3}{2}$. В любой другой точке прямой $f > \\frac{1}{2}$." },
+              { tex: "f(\\frac{3}{2}) = \\frac{1}{2}", note: "Точка $(\\frac{3}{2}, \\frac{1}{2})$." },
+              { tex: "f(2) = 2(2 - \\frac{3}{2})^{2} + \\frac{1}{2} = 1", note: "Точка $(2, 0)$ на границе." },
+              { tex: "f(0) = 2(0 - \\frac{3}{2})^{2} + \\frac{1}{2} = 5", note: "Точка $(0, 2)$ на границе. И влево от $x = \\frac{3}{2}$, и вправо значение больше." },
+              { tex: "f(0, 0) = (0 - 2)^{2} + (0 - 1)^{2} = 5", note: "Точка $(0, 0)$ внутри закраски: $g(0, 0) = -2 < 0$, значение тоже больше." },
+              { tex: "f \\ge \\frac{1}{2}", note: "Окружность $f = \\frac{1}{4}$ до прямой не доходит и в закраску не входит. В допустимых точках $f$ не бывает меньше $\\frac{1}{2}$, и это значение одно, в $(\\frac{3}{2}, \\frac{1}{2})$. При удалении от $(2, 1)$ функция растёт без верхней границы, максимума нет." }
+            ]
+          },
+          {
+            pill: "11. Смысл",
+            fig: "sense",
+            caption: "(3/2, 1/2) ближайшая точка полуплоскости к (2, 1)",
+            title: "Что получилось",
+            lines: [
+              { tex: "(\\frac{3}{2}, \\frac{1}{2}), \\quad \\mu = 1, \\quad f = \\frac{1}{2}", note: "Ответ: точка, множитель и значение цели." },
+              { tex: "f = (x - 2)^{2} + (y - 1)^{2}", note: "Это квадрат расстояния до $(2, 1)$. В закрашенной области ближайшая к $(2, 1)$ точка как раз $(\\frac{3}{2}, \\frac{1}{2})$." },
+              { tex: "(\\frac{1}{\\sqrt{2}})^{2} = \\frac{1}{2}", note: "Расстояние от $(2, 1)$ до прямой равно $\\frac{1}{\\sqrt{2}}$. Его квадрат совпал с $f$." },
+              { tex: "\\nabla f(\\frac{3}{2}, \\frac{1}{2}) = (-1, -1)", note: "Зелёная стрелка: из $(2, 1)$ через найденную точку, внутрь закраски." },
+              { tex: "\\nabla g = (1, 1)", note: "Перпендикуляр к границе, из закраски наружу, в сторону $(2, 1)$." },
+              { tex: "1 \\cdot (1, 1) = (1, 1)", note: "Множитель $\\mu = 1$ оставляет это направление. На рисунке стрелка синяя." },
+              { tex: "(-1, -1) + (1, 1) = (0, 0)", note: "Стрелки одной длины и смотрят в противоположные стороны, в сумме ноль." }
+            ]
+          }
+        ];
+        const rawK = parseInt(new URLSearchParams(location.search).get("k") || "1", 10);
+        let k = Math.min(steps.length - 1, Math.max(0, (isNaN(rawK) ? 1 : rawK) - 1));
+        const pills = document.getElementById("alg-pills");
+        pills.innerHTML = steps.map(function (s, i) {
+          return "<button type='button' data-k='" + i + "'>" + s.pill + "</button>";
+        }).join("");
+
+        function scene(kind) {
+          const o = {
+            x0: -0.9, x1: 4.05, y0: -1.7, y1: 3.35, h: 460, w: 700,
+            polys: [{ pts: [[-0.9, -1.7], [3.7, -1.7], [-0.9, 2.9]], fill: "#e4eef2", opacity: 0.9 }],
+            lines: [{ b: 2, stroke: "#1f4d63", width: kind === "cases" || kind === "bisect" ? 3.6 : 2.6 }],
+            circles: [],
+            dashed: [],
+            arrows: [],
+            points: [{ x: 2, y: 1, fill: "#9f1239", r: 5 }],
+            marks: [{ x: 2, y: 1, text: "(2, 1)", fill: "#9f1239", dx: 10, dy: -8, size: 13 }]
+          };
+          const levels = [
+            { r: 0.5, text: "f = 1/4", lx: 2.62, ly: 1.18 },
+            { r: Rtouch, text: "f = 1/2", lx: 2.72, ly: 1.72 }
+          ];
+          function addCircles(mode) {
+            levels.forEach(function (c) {
+              const isTouch = Math.abs(c.r - Rtouch) < 0.01;
+              let stroke = "#1c1916";
+              let width = 2.2;
+              let fill = "none";
+              let label = true;
+              if (mode === "all") {
+                if (!isTouch) fill = "#ebe4d6";
+              } else if (mode === "touch") {
+                stroke = isTouch ? "#1c1916" : "#ddd6c8";
+                width = isTouch ? 2.8 : 1.2;
+                label = isTouch;
+              } else if (mode === "compare") {
+                stroke = isTouch ? "#3f6212" : "#c4b8a4";
+                width = isTouch ? 2.6 : 1.3;
+                if (!isTouch) fill = "#ebe4d6";
+                label = isTouch;
+              } else if (mode === "grad" || mode === "quiet") {
+                stroke = mode === "quiet" ? "#1c1916" : "#ddd6c8";
+                width = mode === "quiet" ? 2.6 : 1.2;
+                label = false;
+                if (mode === "quiet" && !isTouch) return;
+              }
+              o.circles.push({ cx: 2, cy: 1, r: c.r, stroke: stroke, width: width, fill: fill });
+              if (label) o.marks.push({ x: c.lx, y: c.ly, text: c.text, fill: stroke === "#ddd6c8" || stroke === "#c4b8a4" ? "#6b645b" : stroke, dx: 0, dy: 0, size: 14 });
+            });
+          }
+          o.marks.push({ x: 3.25, y: -1.05, text: "g = 0", fill: "#1f4d63", dx: 0, dy: 0, size: 14 });
+          o.marks.push({ x: 0.35, y: -1.15, text: "g ≤ 0", fill: "#1f4d63", dx: 0, dy: 0, size: 14 });
+          if (kind === "levels" || kind === "count") addCircles("all");
+          if (kind === "count") {
+            o.marks.push({ x: 3.15, y: 2.85, text: "n = 2", fill: "#1c1916", dx: 0, dy: 0, size: 15 });
+            o.marks.push({ x: 3.15, y: -0.85, text: "m = 1", fill: "#1f4d63", dx: 0, dy: 0, size: 15 });
+          }
+          if (kind === "grad") {
+            addCircles("grad");
+            o.points.push({ x: 0, y: 2, fill: "#b45309", r: 6 });
+            o.marks.push({ x: 0, y: 2, text: "(0, 2)", fill: "#b45309", dx: 10, dy: -10, size: 13 });
+            o.arrows.push({ x1: 0, y1: 2, x2: -0.63, y2: 2.31, color: "#3f6212" });
+            o.arrows.push({ x1: 0, y1: 2, x2: 0.5, y2: 2.5, color: "#1f4d63" });
+            o.marks.push({ x: -0.63, y: 2.31, text: "∇f", fill: "#3f6212", dx: -28, dy: -2, size: 14 });
+            o.marks.push({ x: 0.5, y: 2.5, text: "∇g", fill: "#1f4d63", dx: 8, dy: -4, size: 14 });
+          }
+          if (kind === "parallel") {
+            addCircles("touch");
+            o.dashed.push({ x1: -0.55, y1: -1.55, x2: 3.85, y2: 2.85, stroke: "#b45309" });
+            o.marks.push({ x: 3.05, y: 2.45, text: "x - y = 1", fill: "#b45309", dx: 0, dy: 0, size: 14 });
+            o.points.push({ x: 1.5, y: 0.5, fill: "#3f6212", r: 6 });
+            o.arrows.push({ x1: 1.66, y1: 0.34, x2: 1.16, y2: -0.16, color: "#3f6212" });
+            o.arrows.push({ x1: 1.82, y1: 0.12, x2: 2.32, y2: 0.62, color: "#1f4d63" });
+            o.marks.push({ x: 1.16, y: -0.16, text: "∇f", fill: "#3f6212", dx: -28, dy: 16, size: 14 });
+            o.marks.push({ x: 2.32, y: 0.62, text: "∇g", fill: "#1f4d63", dx: 6, dy: 18, size: 14 });
+          }
+          if (kind === "cases" || kind === "inside") addCircles("touch");
+          if (kind === "inside") {
+            o.points[0].r = 8;
+            o.marks.push({ x: 2, y: 1, text: "g = 1", fill: "#9f1239", dx: 14, dy: 28, size: 14 });
+          }
+          if (kind === "bisect" || kind === "check") {
+            addCircles("touch");
+            o.dashed.push({ x1: -0.55, y1: -1.55, x2: 3.85, y2: 2.85, stroke: "#b45309" });
+            o.marks.push({ x: 3.05, y: 2.45, text: "x - y = 1", fill: "#b45309", dx: 0, dy: 0, size: 14 });
+            o.points.push({ x: 1.5, y: 0.5, fill: "#3f6212", r: 7 });
+            o.marks.push({ x: 1.5, y: 0.5, text: "(3/2, 1/2)", fill: "#3f6212", dx: -78, dy: 18, size: 14 });
+          }
+          if (kind === "compare") {
+            addCircles("compare");
+            o.points.push({ x: 1.5, y: 0.5, fill: "#3f6212", r: 7 });
+            o.points.push({ x: 2, y: 0, fill: "#b45309", r: 6 });
+            o.points.push({ x: 0, y: 2, fill: "#b45309", r: 6 });
+            o.points.push({ x: 0, y: 0, fill: "#9f1239", r: 6 });
+            o.marks.push({ x: 1.5, y: 0.5, text: "f = 1/2", fill: "#3f6212", dx: -64, dy: 22, size: 14 });
+            o.marks.push({ x: 2, y: 0, text: "f = 1", fill: "#b45309", dx: 26, dy: -6, size: 14 });
+            o.marks.push({ x: 0, y: 2, text: "f = 5", fill: "#b45309", dx: 12, dy: -16, size: 14 });
+            o.marks.push({ x: 0, y: 0, text: "f = 5", fill: "#9f1239", dx: 10, dy: 18, size: 14 });
+          }
+          if (kind === "sense") {
+            addCircles("quiet");
+            o.marks[0].x = 2.7;
+            o.marks[0].y = 1.55;
+            o.marks[0].dx = 0;
+            o.marks[0].dy = 0;
+            o.points.push({ x: 1.5, y: 0.5, fill: "#3f6212", r: 7 });
+            o.marks.push({ x: 1.5, y: 0.5, text: "(3/2, 1/2)", fill: "#3f6212", dx: -96, dy: -2, size: 14 });
+            o.dashed.push({ x1: 2, y1: 1, x2: 1.5, y2: 0.5, stroke: "#3f6212" });
+            o.marks.push({ x: 1.12, y: 1.28, text: "1/√2", fill: "#3f6212", dx: 0, dy: 0, size: 14 });
+            o.arrows.push({ x1: 1.34, y1: 0.42, x2: 0.78, y2: -0.14, color: "#3f6212" });
+            o.arrows.push({ x1: 1.78, y1: 0.22, x2: 2.28, y2: 0.72, color: "#1f4d63" });
+            o.marks.push({ x: 0.78, y: -0.14, text: "∇f", fill: "#3f6212", dx: -26, dy: 16, size: 14 });
+            o.marks.push({ x: 2.28, y: 0.72, text: "μ∇g", fill: "#1f4d63", dx: 8, dy: 18, size: 14 });
+          }
+          return plane(o);
+        }
+
+        function pin() {
+          let html = "<h3>Постановка</h3>" +
+            "<div class='dline'>" + toMathML("f(x, y) = (x - 2)^{2} + (y - 1)^{2}") + "</div>" +
+            "<div class='dline'>" + toMathML("g(x, y) = x + y - 2 \\le 0") + "</div>";
+          if (k >= 2 && k < 6) {
+            html += "<h3 class='pin-next'>Функция Лагранжа</h3>" +
+              "<div class='dline'>" + toMathML("L = (x - 2)^{2} + (y - 1)^{2} + \\mu x + \\mu y - 2\\mu") + "</div>";
+          }
+          if (k === 6) {
+            html += "<h3 class='pin-next'>Случай внутри</h3>" +
+              "<div class='dline'>" + toMathML("2(x - 2) = 0") + "</div>" +
+              "<div class='dline'>" + toMathML("2(y - 1) = 0") + "</div>" +
+              "<div class='dline'>" + toMathML("g(2, 1) = 1") + "</div>";
+          }
+          if (k >= 7) {
+            html += "<h3 class='pin-next'>Система на границе</h3>" +
+              "<div class='dline'>" + toMathML("2(x - 2) + \\mu = 0") + "</div>" +
+              "<div class='dline'>" + toMathML("2(y - 1) + \\mu = 0") + "</div>" +
+              "<div class='dline'>" + toMathML("x + y - 2 = 0") + "</div>";
+          }
+          document.getElementById("alg-pin").innerHTML = html;
+        }
+
+        function paint() {
+          const s = steps[k];
+          pin();
+          let html = "<h3>" + s.title + "</h3><p class='step-k'>шаг " + (k + 1) + " из 11</p>";
+          s.lines.forEach(function (ln) {
+            html += "<div class='dline'>" + toMathML(ln.tex);
+            if (ln.note) html += "<p class='sayline'>" + rich(ln.note) + "</p>";
+            html += "</div>";
+          });
+          document.getElementById("alg-card").innerHTML = html;
+          document.getElementById("alg-fig").innerHTML = scene(s.fig);
+          document.getElementById("alg-legend").innerHTML =
+            "<span><i class='sw' style='background:#e4eef2;border:1px solid #1f4d63'></i>допустимо g ≤ 0</span>" +
+            "<span><i class='sw' style='background:#1f4d63'></i>граница g = 0</span>" +
+            "<span><i class='sw' style='background:#1c1916'></i>окружность f = const</span>" +
+            "<span>" + s.caption + "</span>";
+          document.getElementById("alg-cnt").textContent = (k + 1) + " / " + steps.length;
+          document.getElementById("rb-prev").disabled = k === 0;
+          document.getElementById("rb-next").disabled = k === steps.length - 1;
+          pills.querySelectorAll("button").forEach(function (b) {
+            b.classList.toggle("on", +b.getAttribute("data-k") === k);
+          });
+        }
+        document.getElementById("rb-prev").onclick = function () { if (k > 0) { k--; paint(); } };
+        document.getElementById("rb-next").onclick = function () { if (k < steps.length - 1) { k++; paint(); } };
+        pills.onclick = function (e) {
+          const b = e.target.closest("button[data-k]");
+          if (!b) return;
+          k = +b.getAttribute("data-k");
+          paint();
+        };
+        paint();
+      }
+    },
+    {
+      id: "hw",
+      phase: "Задание",
+      toc: "Свой вариант",
+      title: "Свой вариант",
+      lead: "Номер варианта: остаток от деления номера в потоке на 20. Остаток 0 означает вариант 20. Пример: номер 32 даёт вариант 12. Примеры с пары в отчёт не переписывать.",
+      html: `
+        <div class="grid-2">
+          <div class="card">
+            <h3>Что сдать</h3>
+            <ol class="steps">
+              <li><span class="num">1</span><div>Записать f и все h<sub>j</sub> = 0. Проверить, что допустимое множество непустое и что в его точках градиенты ограничений линейно независимы. У нас в примере это было ∇h = (1, 1) ≠ 0.</div></li>
+              <li><span class="num">2</span><div>Собрать L с одним знаком, выписать все ∂L/∂x<sub>i</sub> = 0 и сами ограничения. Найти все действительные решения. Каждое подставить в h<sub>j</sub> и в f.</div></li>
+              <li><span class="num">3</span><div>Обосновать глобальность отдельно от системы. На окружности и сфере множество компактно: сравнить f во всех найденных точках. На прямой и на гиперболе выразить часть переменных и посмотреть поведение на бесконечности, как с 2(t − 1)² + 2.</div></li>
+              <li><span class="num">4</span><div>Тот же список точек получить в SymPy: программа сама дифференцирует L и печатает кандидатов вместе с невязками h<sub>j</sub>. В отчёте таблица из двух столбцов, ручной счёт и печать.</div></li>
+            </ol>
+            <p class="note">Выкладки набирают, фото тетради не принимают. <a href="Теория%20метод%20множителей%20Лагранжа%20в%20многомерной%20условной%20оптимизации.docx.pdf">Конспект</a>, <a href="Методические%20указания%20к%20лабораторной%20работе%20по%20методу%20множителей%20Лагранжа.docx.pdf">варианты и критерии</a>.</p>
+          </div>
+          <div>
+            <div class="card">
+              <h3>Баллы из методички, сумма 10</h3>
+              <p>По 0,5: постановка, регулярность, функция Лагранжа, полнота системы, все кандидаты, проверка допустимости, классификация. Глобальность — 1. Программа, которая повторяет эти шаги, — 1. Совпадение ручного и программного ответа — 0,5. Вопросы на защите — 4.</p>
+              <p>Больше 5 баллов не ставят, если нет ручного решения, программа печатает заранее записанную точку, из нескольких корней найден один, глобальность объявлена только потому что сошлась система, точку не подставили в ограничение, или вместо системы вызван готовый оптимизатор.</p>
+              <div class="ban">
+                <span>scipy.optimize.minimize</span>
+                <span>готовый солвер</span>
+                <span>print заранее известной точки</span>
+                <span>один корень из нескольких</span>
+              </div>
+            </div>
+            <div class="card">
+              <h3>Тот же пример в SymPy</h3>
+              <div class="codebox">import sympy as sp
+x, y = sp.symbols("x y", real=True)
+lam = sp.symbols("lam", real=True)
+f = x**2 + y**2
+constraints = [x + y - 2]
+L = f + lam * constraints[0]
+equations = [sp.diff(L, v) for v in (x, y)] + constraints
+for sol in sp.solve(equations, [x, y, lam], dict=True):
+    pt = {x: sol[x], y: sol[y]}
+    print(sol, sp.simplify(constraints[0].subs(pt)), sp.simplify(f.subs(pt)))</div>
+              <p class="note">Ожидаемая печать: x = 1, y = 1, λ = −2, невязка 0, f = 2. Минимум в эту печать не входит: его даёт подстановка y = 2 − x, а не solve.</p>
+            </div>
+          </div>
+        </div>
+        <div class="card" style="margin-top:12px">
+          <h3>Варианты</h3>
+          <table class="sx" id="var-table"></table>
+          <p class="note">В столбце «оба» допустимое множество — окружность или сфера: нужны и минимум, и максимум. В столбце «min» — прямая, плоскость или гипербола: нужен минимум и отдельный разбор, есть ли максимум. Варианты 9, 19 и 20 совпадают с 3, 4 и 5.</p>
+        </div>`,
+      onEnter: function () {
+        const rows = [
+          ["1", "оба", "x + y", "x² + y² = 2"],
+          ["2", "оба", "2x − y", "x² + y² = 5"],
+          ["3", "оба", "xy", "x² + y² = 2"],
+          ["4", "оба", "x² + 2y²", "x² + y² = 1"],
+          ["5", "min", "x² + y²", "x + 2y = 4"],
+          ["6", "min", "x² + 2y² + 3z²", "x + y + z = 6"],
+          ["7", "оба", "x + y + z", "x² + y² + z² = 9"],
+          ["8", "оба", "x² + 2y² + 4z²", "x² + y² + z² = 1"],
+          ["9", "оба", "xy", "x² + y² = 2"],
+          ["10", "min", "x² + y² + z²", "x + y + z = 3, x − y = 1"],
+          ["11", "оба", "x + y", "x² + 4y² = 4"],
+          ["12", "min", "x² + y²", "xy = 1"],
+          ["13", "оба", "(x − 1)² + (y + 2)²", "x² + y² = 1"],
+          ["14", "оба", "x + 2y − z", "x² + 2y² + z² = 4"],
+          ["15", "min", "x² + y² + z²", "x + y + z = 3, x − y = 0"],
+          ["16", "min", "x² + 3y²", "xy = 2"],
+          ["17", "оба", "x + y + 2z", "x² + y² + z² = 6"],
+          ["18", "min", "x² + y² + 2z²", "x + y + z = 4"],
+          ["19", "оба", "x² + 2y²", "x² + y² = 1"],
+          ["20", "min", "x² + y²", "x + 2y = 4"]
+        ];
+        let h = "<thead><tr><th>№</th><th></th><th>f</th><th>ограничение</th><th>№</th><th></th><th>f</th><th>ограничение</th></tr></thead><tbody>";
+        for (let i = 0; i < 10; i++) {
+          const a = rows[i], b = rows[i + 10];
+          h += "<tr><td class='num'>" + a[0] + "</td><td>" + a[1] + "</td><td>" + a[2] + "</td><td>" + a[3] +
+            "</td><td class='num'>" + b[0] + "</td><td>" + b[1] + "</td><td>" + b[2] + "</td><td>" + b[3] + "</td></tr>";
+        }
+        h += "</tbody>";
+        document.getElementById("var-table").innerHTML = h;
+      }
+    }
+  ];
+
+  let i = 0;
+  const main = document.getElementById("main");
+  const toc = document.getElementById("toc");
+  const phase = document.getElementById("phase");
+  const counter = document.getElementById("counter");
+  const bar = document.getElementById("bar");
+  const prev = document.getElementById("prev");
+  const next = document.getElementById("next");
+
+  toc.innerHTML = "<h2>Ход практики</h2>" + slides.map(function (s, k) {
+    return "<button type='button' data-i='" + k + "'><span class='n'>" + (k + 1) + "</span>" + s.toc + "</button>";
+  }).join("");
+
+  function render() {
+    const s = slides[i];
+    phase.textContent = s.phase;
+    counter.textContent = (i + 1) + " / " + slides.length;
+    bar.style.width = ((i + 1) / slides.length * 100) + "%";
+    prev.disabled = i === 0;
+    next.disabled = i === slides.length - 1;
+    toc.querySelectorAll("button").forEach(function (b, k) { b.classList.toggle("active", k === i); });
+    main.innerHTML = "<div class='slide'><h1>" + s.title + "</h1><p class='lead'>" + s.lead + "</p>" + s.html + "</div>";
+    if (s.onEnter) s.onEnter();
+    const active = toc.querySelector("button.active");
+    if (active) active.scrollIntoView({ block: "nearest" });
+  }
+
+  prev.onclick = function () { if (i > 0) { i--; render(); } };
+  next.onclick = function () { if (i < slides.length - 1) { i++; render(); } };
+  toc.onclick = function (e) {
+    const b = e.target.closest("button[data-i]");
+    if (!b) return;
+    i = +b.getAttribute("data-i");
+    render();
+  };
+  document.addEventListener("keydown", function (e) {
+    if (e.target.closest("input, textarea")) return;
+    const rbNext = document.getElementById("rb-next");
+    const rbPrev = document.getElementById("rb-prev");
+    if ((e.key === "ArrowRight" || e.key === "PageDown" || e.key === " ") && rbNext) {
+      e.preventDefault();
+      if (!rbNext.disabled) { rbNext.click(); return; }
+      if (i < slides.length - 1) { i++; render(); }
+      return;
+    }
+    if ((e.key === "ArrowLeft" || e.key === "PageUp") && rbPrev) {
+      e.preventDefault();
+      if (!rbPrev.disabled) { rbPrev.click(); return; }
+      if (i > 0) { i--; render(); }
+      return;
+    }
+    if (e.key === "ArrowRight" || e.key === "PageDown" || e.key === " ") {
+      e.preventDefault();
+      if (i < slides.length - 1) { i++; render(); }
+    }
+    if (e.key === "ArrowLeft" || e.key === "PageUp") {
+      e.preventDefault();
+      if (i > 0) { i--; render(); }
+    }
+  });
+
+  const start = new URLSearchParams(location.search).get("s");
+  if (start) {
+    const n = parseInt(start, 10);
+    if (!isNaN(n)) i = Math.max(0, Math.min(slides.length - 1, n - 1));
+  }
+  render();
+})();
+</script>
+</body>
+</html>

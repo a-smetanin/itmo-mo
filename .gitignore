@@ -8,5 +8,6 @@ _*.js
 _*.txt
 _*.ipynb
 _подход-практик.md
+_проверки-студентов.md
 __pycache__/
 .python-version
