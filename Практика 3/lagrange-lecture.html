@@ -159,7 +159,7 @@
     .sheet .line.wait { opacity: 0.28; }
     .sheet .line.now { background: var(--accent-soft); border-radius: 6px; padding: 2px 8px; }
     table.sx { border-collapse: collapse; width: 100%; font-size: 14px; background: var(--paper); }
-    table.sx th, table.sx td { border: 1px solid var(--line); padding: 5px 8px; text-align: left; }
+    table.sx th, table.sx td { border: 1px solid var(--line); padding: 3px 8px; text-align: left; }
     table.sx th { background: #f3eee4; font-size: 12px; font-weight: 650; }
     table.sx td.best { background: var(--ok-soft); font-weight: 650; }
     table.sx td.badc { background: #f8e8ea; }
@@ -183,6 +183,39 @@
       margin: 8px 0 0; white-space: pre; overflow: auto;
     }
     .card a, .note a { color: var(--accent); text-decoration: none; border-bottom: 1px solid var(--line); }
+    .slide.hw-slide { max-width: 1240px; }
+    .slide.hw-slide h1 { font-size: 24px; }
+    .slide.hw-slide .lead { font-size: 15px; margin-bottom: 10px; }
+    .hw-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
+      gap: 12px;
+      align-items: start;
+    }
+    .hw-layout .card + .card { margin-top: 10px; }
+    .hw-layout .card { padding: 10px 12px; }
+    .hw-layout .steps li { margin-bottom: 4px; font-size: 14px; line-height: 1.35; }
+    .hw-layout .card p { margin: 0 0 6px; font-size: 14px; line-height: 1.35; }
+    .hw-layout .codebox { font-size: 11.5px; line-height: 1.45; padding: 8px 10px; }
+    .hw-vars { margin-top: 12px; }
+    .hw-legend {
+      display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center;
+      margin: 0 0 8px; font-size: 13px; color: var(--muted);
+    }
+    .pill-k {
+      display: inline-block; min-width: 28px; text-align: center;
+      font-size: 12px; font-weight: 650; padding: 2px 8px; border-radius: 99px;
+      font-variant-numeric: tabular-nums;
+    }
+    .k-both { background: var(--ok-soft); color: var(--ok); }
+    .k-min { background: var(--pivot-soft); color: var(--pivot); }
+    .k-le { background: var(--accent-soft); color: var(--accent); }
+    table.sx td.fml {
+      font-family: "Cambria Math", "Times New Roman", serif;
+      font-size: 16px;
+      white-space: nowrap;
+    }
+    table.sx td.kind { width: 52px; }
     footer {
       border-top: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between;
       padding: 0 16px; background: var(--paper); color: var(--muted); font-size: 12px;
@@ -191,7 +224,7 @@
     @media (max-width: 1100px) {
       .stage { grid-template-columns: 170px 1fr; }
       main { padding: 16px; }
-      .geom-layout, .grid-2 { grid-template-columns: 1fr; }
+      .geom-layout, .grid-2, .hw-layout { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -1464,22 +1497,22 @@
       title: "Свой вариант",
       lead: "Номер варианта: остаток от деления номера в потоке на 20. Остаток 0 означает вариант 20. Пример: номер 32 даёт вариант 12. Примеры с пары в отчёт не переписывать.",
       html: `
-        <div class="grid-2">
+        <div class="hw-layout">
           <div class="card">
             <h3>Что сдать</h3>
             <ol class="steps">
-              <li><span class="num">1</span><div>Записать f и все h<sub>j</sub> = 0. Проверить, что допустимое множество непустое и что в его точках градиенты ограничений линейно независимы. У нас в примере это было ∇h = (1, 1) ≠ 0.</div></li>
-              <li><span class="num">2</span><div>Собрать L с одним знаком, выписать все ∂L/∂x<sub>i</sub> = 0 и сами ограничения. Найти все действительные решения. Каждое подставить в h<sub>j</sub> и в f.</div></li>
-              <li><span class="num">3</span><div>Обосновать глобальность отдельно от системы. На окружности и сфере множество компактно: сравнить f во всех найденных точках. На прямой и на гиперболе выразить часть переменных и посмотреть поведение на бесконечности, как с 2(t − 1)² + 2.</div></li>
-              <li><span class="num">4</span><div>Тот же список точек получить в SymPy: программа сама дифференцирует L и печатает кандидатов вместе с невязками h<sub>j</sub>. В отчёте таблица из двух столбцов, ручной счёт и печать.</div></li>
+              <li><span class="num">1</span><div>Записать f и ограничение как на паре: h = 0 или g ≤ 0. Множество непустое, градиент ограничения в его точках не нулевой.</div></li>
+              <li><span class="num">2</span><div>L с плюсом перед множителем. Равенство: производные и h равны нулю. Неравенство: внутренность с нулевым множителем и граница. Оставить точку при g ≤ 0 и множителе ≥ 0, затем подставить её в ограничение и в f.</div></li>
+              <li><span class="num">3</span><div>Глобальность отдельно от системы. Окружность и эллипс: сравнить f во всех точках. Прямая и гипербола: подставить переменную, как 2(t − 1)² + 2. Полуплоскость: ближайшая точка к центру окружностей, максимума нет.</div></li>
+              <li><span class="num">4</span><div>SymPy дифференцирует L. В отчёте два столбца, ручной счёт и печать. Для неравенства solve даёт границу, нулевой множитель проверяют подстановкой центра в g.</div></li>
             </ol>
-            <p class="note">Выкладки набирают, фото тетради не принимают. <a href="Теория%20метод%20множителей%20Лагранжа%20в%20многомерной%20условной%20оптимизации.docx.pdf">Конспект</a>, <a href="Методические%20указания%20к%20лабораторной%20работе%20по%20методу%20множителей%20Лагранжа.docx.pdf">варианты и критерии</a>.</p>
+            <p class="note">Выкладки набирают, фото тетради не принимают. <a href="Теория%20метод%20множителей%20Лагранжа%20в%20многомерной%20условной%20оптимизации.docx.pdf">Конспект</a>, <a href="Методические%20указания%20к%20лабораторной%20работе%20по%20методу%20множителей%20Лагранжа.docx.pdf">критерии</a>.</p>
           </div>
           <div>
             <div class="card">
               <h3>Баллы из методички, сумма 10</h3>
-              <p>По 0,5: постановка, регулярность, функция Лагранжа, полнота системы, все кандидаты, проверка допустимости, классификация. Глобальность — 1. Программа, которая повторяет эти шаги, — 1. Совпадение ручного и программного ответа — 0,5. Вопросы на защите — 4.</p>
-              <p>Больше 5 баллов не ставят, если нет ручного решения, программа печатает заранее записанную точку, из нескольких корней найден один, глобальность объявлена только потому что сошлась система, точку не подставили в ограничение, или вместо системы вызван готовый оптимизатор.</p>
+              <p>По 0,5: постановка, регулярность, функция Лагранжа, полнота системы, все кандидаты, проверка допустимости, классификация. Глобальность 1. Программа 1. Совпадение ручного и программного ответа 0,5. Вопросы на защите 4.</p>
+              <p>Выше 5 не ставят без ручного решения, с одним корнем из нескольких, с заранее напечатанной точкой, без подстановки в ограничение или с готовым оптимизатором.</p>
               <div class="ban">
                 <span>scipy.optimize.minimize</span>
                 <span>готовый солвер</span>
@@ -1487,9 +1520,21 @@
                 <span>один корень из нескольких</span>
               </div>
             </div>
-            <div class="card">
-              <h3>Тот же пример в SymPy</h3>
-              <div class="codebox">import sympy as sp
+          </div>
+        </div>
+        <div class="card hw-vars">
+          <h3>Варианты</h3>
+          <div class="hw-legend">
+            <span><span class="pill-k k-both">оба</span> окружность или эллипс, минимум и максимум</span>
+            <span><span class="pill-k k-min">min</span> прямая или гипербола, минимум и есть ли максимум</span>
+            <span><span class="pill-k k-le">≤</span> полуплоскость, как на третьем слайде</span>
+          </div>
+          <table class="sx" id="var-table"></table>
+          <p class="note">Варианты 9, 19 и 20 совпадают с 3, 4 и 5. В неравенствах цель это квадрат расстояния до точки, ограничение одно и линейное.</p>
+        </div>
+        <div class="card" style="margin-top:12px">
+          <h3>Тот же пример в SymPy</h3>
+          <div class="codebox">import sympy as sp
 x, y = sp.symbols("x y", real=True)
 lam = sp.symbols("lam", real=True)
 f = x**2 + y**2
@@ -1499,14 +1544,7 @@ equations = [sp.diff(L, v) for v in (x, y)] + constraints
 for sol in sp.solve(equations, [x, y, lam], dict=True):
     pt = {x: sol[x], y: sol[y]}
     print(sol, sp.simplify(constraints[0].subs(pt)), sp.simplify(f.subs(pt)))</div>
-              <p class="note">Ожидаемая печать: x = 1, y = 1, λ = −2, невязка 0, f = 2. Минимум в эту печать не входит: его даёт подстановка y = 2 − x, а не solve.</p>
-            </div>
-          </div>
-        </div>
-        <div class="card" style="margin-top:12px">
-          <h3>Варианты</h3>
-          <table class="sx" id="var-table"></table>
-          <p class="note">В столбце «оба» допустимое множество — окружность или сфера: нужны и минимум, и максимум. В столбце «min» — прямая, плоскость или гипербола: нужен минимум и отдельный разбор, есть ли максимум. Варианты 9, 19 и 20 совпадают с 3, 4 и 5.</p>
+          <p class="note">Ожидаемая печать: x = 1, y = 1, λ = −2, невязка 0, f = 2. Минимум в эту печать не входит: его даёт подстановка y = 2 − x.</p>
         </div>`,
       onEnter: function () {
         const rows = [
@@ -1515,27 +1553,30 @@ for sol in sp.solve(equations, [x, y, lam], dict=True):
           ["3", "оба", "xy", "x² + y² = 2"],
           ["4", "оба", "x² + 2y²", "x² + y² = 1"],
           ["5", "min", "x² + y²", "x + 2y = 4"],
-          ["6", "min", "x² + 2y² + 3z²", "x + y + z = 6"],
-          ["7", "оба", "x + y + z", "x² + y² + z² = 9"],
-          ["8", "оба", "x² + 2y² + 4z²", "x² + y² + z² = 1"],
+          ["6", "≤", "(x − 1)² + (y − 1)²", "x + y ≤ 1"],
+          ["7", "≤", "(x − 1)² + (y − 2)²", "x + y ≤ 4"],
+          ["8", "≤", "(x − 2)² + (y − 2)²", "x + y ≤ 2"],
           ["9", "оба", "xy", "x² + y² = 2"],
-          ["10", "min", "x² + y² + z²", "x + y + z = 3, x − y = 1"],
+          ["10", "≤", "(x − 3)² + y²", "x ≤ 1"],
           ["11", "оба", "x + y", "x² + 4y² = 4"],
           ["12", "min", "x² + y²", "xy = 1"],
           ["13", "оба", "(x − 1)² + (y + 2)²", "x² + y² = 1"],
-          ["14", "оба", "x + 2y − z", "x² + 2y² + z² = 4"],
-          ["15", "min", "x² + y² + z²", "x + y + z = 3, x − y = 0"],
+          ["14", "≤", "(x − 4)² + (y − 2)²", "x + y ≤ 2"],
+          ["15", "≤", "(x − 2)² + (y − 1)²", "x + y ≤ 4"],
           ["16", "min", "x² + 3y²", "xy = 2"],
-          ["17", "оба", "x + y + 2z", "x² + y² + z² = 6"],
-          ["18", "min", "x² + y² + 2z²", "x + y + z = 4"],
+          ["17", "≤", "(x + 1)² + (y − 3)²", "x + y ≤ 1"],
+          ["18", "≤", "x² + (y − 1)²", "x + y ≤ 2"],
           ["19", "оба", "x² + 2y²", "x² + y² = 1"],
           ["20", "min", "x² + y²", "x + 2y = 4"]
         ];
-        let h = "<thead><tr><th>№</th><th></th><th>f</th><th>ограничение</th><th>№</th><th></th><th>f</th><th>ограничение</th></tr></thead><tbody>";
+        const kindClass = { "оба": "k-both", "min": "k-min", "≤": "k-le" };
+        function cells(r) {
+          const cls = kindClass[r[1]] || "";
+          return "<td class='num'>" + r[0] + "</td><td class='kind'><span class='pill-k " + cls + "'>" + r[1] + "</span></td><td class='fml'>" + r[2] + "</td><td class='fml'>" + r[3] + "</td>";
+        }
+        let h = "<thead><tr><th>№</th><th>тип</th><th>f</th><th>ограничение</th><th>№</th><th>тип</th><th>f</th><th>ограничение</th></tr></thead><tbody>";
         for (let i = 0; i < 10; i++) {
-          const a = rows[i], b = rows[i + 10];
-          h += "<tr><td class='num'>" + a[0] + "</td><td>" + a[1] + "</td><td>" + a[2] + "</td><td>" + a[3] +
-            "</td><td class='num'>" + b[0] + "</td><td>" + b[1] + "</td><td>" + b[2] + "</td><td>" + b[3] + "</td></tr>";
+          h += "<tr>" + cells(rows[i]) + cells(rows[i + 10]) + "</tr>";
         }
         h += "</tbody>";
         document.getElementById("var-table").innerHTML = h;
@@ -1564,7 +1605,7 @@ for sol in sp.solve(equations, [x, y, lam], dict=True):
     prev.disabled = i === 0;
     next.disabled = i === slides.length - 1;
     toc.querySelectorAll("button").forEach(function (b, k) { b.classList.toggle("active", k === i); });
-    main.innerHTML = "<div class='slide'><h1>" + s.title + "</h1><p class='lead'>" + s.lead + "</p>" + s.html + "</div>";
+    main.innerHTML = "<div class='slide" + (s.id === "hw" ? " hw-slide" : "") + "'><h1>" + s.title + "</h1><p class='lead'>" + s.lead + "</p>" + s.html + "</div>";
     if (s.onEnter) s.onEnter();
     const active = toc.querySelector("button.active");
     if (active) active.scrollIntoView({ block: "nearest" });
