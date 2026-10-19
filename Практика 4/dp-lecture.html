@@ -1,0 +1,1590 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Динамическое программирование · многоэтапная задача</title>
+  <style>
+    :root {
+      --bg: #f4efe6;
+      --paper: #fffdf8;
+      --ink: #1c1916;
+      --muted: #6b645b;
+      --line: #d9d0c3;
+      --accent: #1f4d63;
+      --accent-soft: #e4eef2;
+      --pivot: #b45309;
+      --pivot-soft: #f3e0c8;
+      --ok: #3f6212;
+      --ok-soft: #e8efd8;
+      --bad: #9f1239;
+      --shadow: 0 0 0 1px var(--line);
+      --f1: #1f4d63;
+      --f2: #3f6212;
+      --f3: #b45309;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; }
+    body {
+      font-family: "Segoe UI", "Iosevka", "Cambria", Georgia, serif;
+      background: var(--bg);
+      color: var(--ink);
+      overflow: hidden;
+    }
+    .app { display: grid; grid-template-rows: 56px 1fr 44px; height: 100%; }
+    header {
+      display: flex; align-items: center; gap: 16px;
+      padding: 0 18px; border-bottom: 1px solid var(--line); background: var(--paper);
+    }
+    header .brand { font-weight: 650; }
+    header .brand span { color: var(--muted); font-weight: 500; }
+    .phase {
+      font-size: 13px; color: var(--accent); background: var(--accent-soft);
+      padding: 4px 10px; border-radius: 999px; white-space: nowrap;
+    }
+    .progress { flex: 1; height: 4px; background: var(--line); border-radius: 99px; overflow: hidden; }
+    .progress > i { display: block; height: 100%; background: var(--accent); width: 0; }
+    .counter { font-variant-numeric: tabular-nums; color: var(--muted); font-size: 13px; min-width: 52px; text-align: right; }
+    .nav-btn {
+      appearance: none; border: 1px solid var(--line); background: var(--paper); color: var(--ink);
+      height: 32px; min-width: 32px; padding: 0 10px; border-radius: 6px; cursor: pointer; font: inherit; font-size: 14px;
+    }
+    .nav-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .nav-btn:disabled { opacity: 0.35; cursor: default; }
+    .stage { display: grid; grid-template-columns: 210px 1fr; min-height: 0; }
+    .toc { border-right: 1px solid var(--line); padding: 14px 10px; overflow: auto; background: #f7f3eb; }
+    .toc h2 {
+      margin: 0 8px 10px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em;
+      color: var(--muted); font-weight: 650;
+    }
+    .toc button {
+      display: block; width: 100%; text-align: left; border: 0; background: transparent; color: var(--muted);
+      font: inherit; font-size: 13px; padding: 7px 8px; border-radius: 6px; cursor: pointer;
+    }
+    .toc button.active { background: var(--paper); color: var(--ink); box-shadow: var(--shadow); }
+    .toc button .n { display: inline-block; width: 18px; color: var(--muted); font-variant-numeric: tabular-nums; }
+    main { overflow: auto; padding: 22px 32px 32px; }
+    .slide { max-width: 1180px; }
+    .slide h1 { font-size: 26px; font-weight: 650; margin: 0 0 8px; letter-spacing: -0.02em; }
+    .lead { color: var(--muted); font-size: 16px; margin: 0 0 14px; line-height: 1.45; }
+    .say {
+      font-size: 18px; line-height: 1.4; margin: 0 0 14px; padding: 10px 14px;
+      background: var(--accent-soft); border-left: 3px solid var(--accent); border-radius: 0 8px 8px 0;
+    }
+    .geom-layout {
+      display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(280px, 420px);
+      gap: 16px; align-items: start;
+    }
+    .geom-story { display: flex; flex-direction: column; gap: 10px; }
+    .card {
+      background: var(--paper); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px;
+    }
+    .card h3 {
+      margin: 0 0 8px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted);
+    }
+    .card h3.var-title {
+      font-size: 20px; text-transform: none; letter-spacing: -0.02em; color: var(--ink); font-weight: 650;
+    }
+    .stream-pick {
+      display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 0 0 12px;
+    }
+    .stream-pick input {
+      width: 88px; font: inherit; font-size: 16px; color: var(--ink);
+      border: 1px solid var(--line); border-radius: 8px; background: var(--paper); padding: 6px 10px;
+    }
+    .stream-pick .got { font-weight: 650; color: var(--accent); }
+    .card p { margin: 0 0 8px; line-height: 1.45; }
+    .card p:last-child { margin-bottom: 0; }
+    .eq { font-family: "Cambria Math", "Times New Roman", serif; font-size: 20px; line-height: 1.55; }
+    .note { font-size: 14px; color: var(--muted); line-height: 1.45; margin-top: 8px; }
+    .fig { background: var(--paper); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+    .fig svg { display: block; width: 100%; height: auto; }
+    .geom-legend { display: flex; gap: 14px; flex-wrap: wrap; padding: 8px 2px 0; font-size: 12px; color: var(--muted); }
+    .sw { display: inline-block; width: 12px; height: 12px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; }
+    .seg { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0; }
+    .idea-pills { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 12px; }
+    .idea-pills button {
+      appearance: none; border: 1px solid var(--line); background: var(--paper); color: var(--ink);
+      border-radius: 99px; padding: 5px 11px; font: inherit; font-size: 13px; cursor: pointer;
+    }
+    .idea-pills button.on { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); font-weight: 650; }
+    .alg-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(340px, 460px);
+      gap: 16px;
+      align-items: start;
+    }
+    .alg-side { display: flex; flex-direction: column; gap: 10px; min-height: 0; }
+    .pin {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-left: 3px solid var(--accent);
+      border-radius: 0 10px 10px 0;
+      padding: 8px 14px 6px;
+    }
+    .pin h3 {
+      margin: 0 0 2px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em;
+      color: var(--muted); font-weight: 650;
+    }
+    .pin math, .card math, .say math, .eq math { font-family: "Cambria Math", "Times New Roman", serif; }
+    .dline { padding: 7px 2px 8px; border-top: 1px solid var(--line); }
+    .dline:first-of-type { border-top: 0; padding-top: 2px; }
+    .dline > math { font-size: 22px; }
+    .dline .sayline { margin: 2px 0 0; font-size: 14px; line-height: 1.4; }
+    .steps { margin: 0; padding: 0; list-style: none; }
+    .steps li { display: grid; grid-template-columns: 28px 1fr; gap: 10px; margin-bottom: 10px; font-size: 15px; line-height: 1.4; }
+    .steps .num {
+      width: 28px; height: 28px; border-radius: 50%; background: var(--accent); color: #fff;
+      display: grid; place-items: center; font-size: 13px; font-weight: 650;
+    }
+    table.sx { border-collapse: collapse; width: 100%; font-size: 14px; background: var(--paper); }
+    table.sx th, table.sx td { border: 1px solid var(--line); padding: 4px 8px; text-align: center; }
+    table.sx th { background: #f3eee4; font-size: 12px; font-weight: 650; }
+    table.sx td.best { background: var(--ok-soft); font-weight: 650; }
+    table.sx td.now { background: var(--accent-soft); }
+    table.sx tr.now td { background: var(--accent-soft); }
+    table.sx tr.now td.best { background: #d5e4c4; }
+    table.sx th.from { background: var(--accent-soft); color: var(--accent); }
+    table.sx th.tail { background: var(--pivot-soft); color: var(--pivot); }
+    table.sx th.both { background: linear-gradient(90deg, var(--accent-soft) 50%, var(--pivot-soft) 50%); }
+    table.sx th.write { background: var(--ok-soft); color: var(--ok); }
+    table.sx tr.dim td.from,
+    table.sx tr.dim td.tail,
+    table.sx tr.dim td.write { color: var(--ink); }
+    table.sx td.from, table.sx tr.now td.from { background: var(--accent-soft); box-shadow: inset 0 0 0 2px var(--accent); font-weight: 650; }
+    table.sx td.tail, table.sx tr.now td.tail { background: var(--pivot-soft); box-shadow: inset 0 0 0 2px var(--pivot); font-weight: 650; }
+    table.sx td.write, table.sx tr.now td.write { background: var(--ok-soft); box-shadow: inset 0 0 0 2px var(--ok); font-weight: 650; }
+    table.sx td.cand { background: var(--accent-soft); }
+    table.sx td.candt { background: var(--pivot-soft); }
+    table.sx td.slot { box-shadow: inset 0 0 0 2px var(--ok); }
+    table.sx tr.dim td { color: #a39c93; }
+    .alg-layout.one { grid-template-columns: minmax(0, 1fr); }
+    table.sx td.lab { text-align: left; font-weight: 650; }
+    table.sx td.num { font-variant-numeric: tabular-nums; }
+    table.sx.mini th, table.sx.mini td { padding: 2px 6px; font-size: 13px; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .rebuild-nav {
+      display: flex; align-items: center; gap: 10px; position: sticky; top: 0; z-index: 3;
+      background: var(--bg); padding: 0 0 8px;
+    }
+    .rebuild-nav .cnt { font-variant-numeric: tabular-nums; color: var(--muted); font-size: 13px; }
+    .rebuild-nav .hint { font-size: 13px; color: var(--muted); }
+    .squares { display: flex; gap: 4px; flex-wrap: wrap; margin: 6px 0; }
+    .squares i { width: 22px; height: 22px; border-radius: 4px; display: block; }
+    .ban { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+    .ban span {
+      font-size: 12px; padding: 3px 8px; border-radius: 99px; background: #f8e8ea; color: var(--bad); border: 1px solid #e8c5cc;
+    }
+    .codebox {
+      font-family: Consolas, "Cascadia Mono", monospace; font-size: 12px; line-height: 1.45;
+      background: #f7f3eb; border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px;
+      margin: 8px 0 0; white-space: pre; overflow: auto;
+    }
+    .card a, .note a { color: var(--accent); text-decoration: none; border-bottom: 1px solid var(--line); }
+    .slide.hw-slide { max-width: 1240px; }
+    .slide.hw-slide h1 { font-size: 24px; }
+    .slide.hw-slide .lead { font-size: 15px; margin-bottom: 10px; }
+    .hw-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+      gap: 12px;
+      align-items: start;
+    }
+    .hw-layout .card + .card { margin-top: 10px; }
+    .hw-layout .card { padding: 10px 12px; }
+    .hw-layout .steps li { margin-bottom: 4px; font-size: 14px; line-height: 1.35; }
+    .hw-layout .card p { margin: 0 0 6px; font-size: 14px; line-height: 1.35; }
+    .chain { display: flex; align-items: stretch; gap: 0; flex-wrap: wrap; }
+    .chain .node, .chain .arrow {
+      background: var(--paper); border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px;
+    }
+    .chain .arrow {
+      border: 0; background: transparent; display: flex; align-items: center; color: var(--accent);
+      font-size: 13px; padding: 0 6px; max-width: 120px; line-height: 1.3;
+    }
+    .tag {
+      display: inline-block; font-size: 12px; padding: 1px 7px; border-radius: 99px; margin-right: 4px;
+      background: var(--accent-soft); color: var(--accent);
+    }
+    .setup-board {
+      background: var(--paper); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px 10px;
+    }
+    .setup-flow {
+      display: grid; grid-template-columns: minmax(0, 1fr) 92px minmax(0, 1.05fr) 92px minmax(0, 1fr);
+      gap: 6px; align-items: center;
+    }
+    .setup-flow .col { text-align: center; min-width: 0; }
+    .setup-flow .lbl { font-size: 12px; color: var(--muted); margin-bottom: 6px; min-height: 16px; }
+    .setup-flow .arr { font-size: 13px; line-height: 1.35; color: var(--accent); font-weight: 650; }
+    .setup-flow .box {
+      border: 1px solid var(--line); border-radius: 10px; padding: 8px 6px; background: #fffdf8; min-height: 74px;
+    }
+    .setup-flow .box b { display: block; font-size: 14px; margin-bottom: 4px; }
+    .hot { box-shadow: 0 0 0 2px var(--accent); border-radius: 10px; }
+    .chips { display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; min-height: 22px; }
+    .chips i { width: 16px; height: 16px; border-radius: 4px; display: block; background: var(--accent); }
+    .chips i.pay { background: var(--ok); }
+    .stage-row { display: flex; gap: 8px; justify-content: center; margin-top: 10px; }
+    .stage-row button {
+      appearance: none; font: inherit; font-size: 13px; padding: 4px 10px; border-radius: 99px;
+      border: 1px solid var(--line); color: var(--muted); background: var(--paper); cursor: pointer;
+    }
+    .stage-row button.on { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); font-weight: 650; }
+    .stage-row button.done { color: var(--ink); }
+    .pathline { margin: 8px 0 0; text-align: center; font-size: 14px; line-height: 1.4; }
+    .plan-grid { display: flex; flex-wrap: wrap; gap: 6px; }
+    .plan-grid button {
+      appearance: none; font: inherit; font-size: 13px; font-variant-numeric: tabular-nums;
+      border: 1px solid var(--line); background: var(--paper); color: var(--ink);
+      border-radius: 6px; padding: 6px 8px; cursor: pointer;
+    }
+    .plan-grid button.best { background: var(--ok-soft); font-weight: 650; }
+    .plan-grid button.on { outline: 2px solid var(--accent); outline-offset: 1px; }
+    .pick td { background: var(--accent-soft); }
+    .pick td.best { background: #d5e4c4; }
+    .sheet .line { margin: 0 0 4px; padding: 4px 8px; border-radius: 6px; font-size: 14.5px; line-height: 1.35; }
+    .sheet .line.wait { opacity: 0.32; }
+    .sheet .line.now { background: var(--accent-soft); }
+    #setup-say { font-size: 18px; }
+    footer {
+      border-top: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between;
+      padding: 0 16px; background: var(--paper); color: var(--muted); font-size: 12px;
+    }
+    kbd { font-family: inherit; font-size: 11px; border: 1px solid var(--line); background: #f7f3eb; padding: 1px 5px; border-radius: 4px; }
+    @media (max-width: 1100px) {
+      .stage { grid-template-columns: 170px 1fr; }
+      main { padding: 16px; }
+      .geom-layout, .grid-2, .hw-layout, .alg-layout { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div class="brand">Динамическое программирование <span>· практика 4</span></div>
+      <div class="phase" id="phase"></div>
+      <div class="progress"><i id="bar"></i></div>
+      <div class="counter" id="counter"></div>
+      <button class="nav-btn" id="prev" type="button">←</button>
+      <button class="nav-btn" id="next" type="button">→</button>
+    </header>
+    <div class="stage">
+      <nav class="toc" id="toc"></nav>
+      <main id="main"></main>
+    </div>
+    <footer>
+      <div>Пример: 10 курсов на трёх факультетах. Ответ 115 при плане (8, 1, 1)</div>
+      <div><kbd>←</kbd> <kbd>→</kbd> шаг · <kbd>F11</kbd> на проектор</div>
+    </footer>
+  </div>
+<script>
+(function () {
+  const w = [
+    [0, 5, 10, 15, 25, 45, 60, 80, 90],
+    [0, 15, 20, 25, 35, 40, 45, 50, 70],
+    [0, 10, 10, 30, 35, 45, 55, 65, 75]
+  ];
+  const fname = ["факультет 1", "факультет 2", "факультет 3"];
+  const fshort = ["ф1", "ф2", "ф3"];
+  const fcolor = ["#1f4d63", "#3f6212", "#b45309"];
+
+  function stage2(S) {
+    const rows = [];
+    for (let x = 1; x <= S - 1; x++) {
+      const rest = S - x;
+      if (x > 8 || rest < 1 || rest > 8) continue;
+      rows.push({ x: x, a: w[1][x], rest: rest, b: w[2][rest], sum: w[1][x] + w[2][rest] });
+    }
+    const best = Math.max.apply(null, rows.map(function (r) { return r.sum; }));
+    rows.forEach(function (r) { r.best = r.sum === best; });
+    return { S: S, rows: rows, best: best, xs: rows.filter(function (r) { return r.best; }).map(function (r) { return r.x; }) };
+  }
+
+  const W3 = {};
+  for (let s = 1; s <= 8; s++) W3[s] = w[2][s];
+  const pack2 = {};
+  for (let s = 2; s <= 9; s++) pack2[s] = stage2(s);
+
+  function stage1rows() {
+    const rows = [];
+    for (let x = 1; x <= 8; x++) {
+      const rest = 10 - x;
+      const tail = pack2[rest];
+      rows.push({
+        x: x, a: w[0][x], rest: rest, tail: tail.best, xs: tail.xs,
+        sum: w[0][x] + tail.best
+      });
+    }
+    const best = Math.max.apply(null, rows.map(function (r) { return r.sum; }));
+    rows.forEach(function (r) { r.best = r.sum === best; });
+    return rows;
+  }
+  const rows1 = stage1rows();
+  const best1 = rows1.filter(function (r) { return r.best; })[0];
+
+  function courseSheet(o) {
+    const cols = o.cols || 8;
+    const marks = o.marks || {};
+    const rows = [
+      { id: "f1", label: "1", color: fcolor[0], dim: o.dim && o.dim.f1, val: function (x) { return x <= 8 ? w[0][x] : null; } },
+      { id: "f2", label: "2", color: fcolor[1], dim: o.dim && o.dim.f2, val: function (x) { return x <= 8 ? w[1][x] : null; } },
+      { id: "f3", label: "3", color: fcolor[2], dim: o.dim && o.dim.f3, val: function (x) { return x <= 8 ? w[2][x] : null; } }
+    ];
+    if (o.out3) rows.push({ id: "out3", label: "выписали 3", val: function (x) { return x <= 8 ? w[2][x] : null; } });
+    if (o.out2) rows.push({
+      id: "out2",
+      label: "выписали 2",
+      val: function (x) { return o.out2[x] === undefined ? null : o.out2[x]; }
+    });
+    let h = "<h3>Баллы, как в простом примере</h3><table class='sx mini'><thead><tr><th>курсов</th>";
+    for (let x = 1; x <= cols; x++) {
+      const kinds = {};
+      rows.forEach(function (row) {
+        const c = marks[row.id] && marks[row.id][x];
+        if (c) kinds[c] = true;
+      });
+      let hc = "";
+      if (kinds.from && kinds.tail) hc = "both";
+      else if (kinds.from) hc = "from";
+      else if (kinds.tail) hc = "tail";
+      else if (kinds.write) hc = "write";
+      h += "<th class='" + hc + "'>" + x + "</th>";
+    }
+    h += "</tr></thead><tbody>";
+    rows.forEach(function (row) {
+      h += "<tr" + (row.dim ? " class='dim'" : "") + "><td class='lab'" + (row.color ? " style='color:" + row.color + "'" : "") + ">" + row.label + "</td>";
+      for (let x = 1; x <= cols; x++) {
+        const c = (marks[row.id] && marks[row.id][x]) || "";
+        const v = row.val(x);
+        h += "<td class='num" + (c ? " " + c : "") + "'>" + (v === null || v === undefined ? "·" : v) + "</td>";
+      }
+      h += "</tr>";
+    });
+    h += "</tbody></table>";
+    if (o.note) h += "<p class='note'>" + o.note + "</p>";
+    h += "<p class='note'><span class='sw' style='background:#1f4d63'></span>балл того, кто выбирает сейчас <span class='sw' style='background:#b45309'></span>строка, которую уже выписали <span class='sw' style='background:#3f6212'></span>лучшая сумма, её оставляем</p>";
+    return h;
+  }
+
+  function incomeTable() {
+    let h = "<table class='sx mini'><thead><tr><th>курсов</th>";
+    for (let x = 1; x <= 8; x++) h += "<th>" + x + "</th>";
+    h += "</tr></thead><tbody>";
+    for (let i = 0; i < 3; i++) {
+      h += "<tr><td class='lab' style='color:" + fcolor[i] + "'>" + fshort[i] + "</td>";
+      for (let x = 1; x <= 8; x++) h += "<td class='num'>" + w[i][x] + "</td>";
+      h += "</tr>";
+    }
+    return h + "</tbody></table>";
+  }
+
+  function squares(counts) {
+    let h = "<div class='squares'>";
+    counts.forEach(function (n, i) {
+      for (let k = 0; k < n; k++) h += "<i style='background:" + fcolor[i] + "'></i>";
+    });
+    return h + "</div>";
+  }
+
+  function barsSvg() {
+    const W = 640, H = 268, base = 220, top = 48;
+    const maxV = 90, barW = 16, gap = 3, groupGap = 36;
+    const groupW = 8 * barW + 7 * gap;
+    const xStart = (W - (3 * groupW + 2 * groupGap)) / 2;
+    let g = "<svg viewBox='0 0 " + W + " " + H + "' role='img'>";
+    g += "<rect width='" + W + "' height='" + H + "' fill='#fffdf8'/>";
+    g += "<line x1='16' y1='" + base + "' x2='" + (W - 16) + "' y2='" + base + "' stroke='#d9d0c3'/>";
+    for (let i = 0; i < 3; i++) {
+      const gx = xStart + i * (groupW + groupGap);
+      g += "<text x='" + (gx + groupW / 2) + "' y='24' text-anchor='middle' font-size='14' font-weight='650' fill='" + fcolor[i] + "'>" + fname[i] + "</text>";
+      for (let x = 1; x <= 8; x++) {
+        const bh = (w[i][x] / maxV) * (base - top);
+        const bx = gx + (x - 1) * (barW + gap);
+        g += "<rect x='" + bx + "' y='" + (base - bh) + "' width='" + barW + "' height='" + bh + "' rx='2' fill='" + fcolor[i] + "'/>";
+        g += "<text x='" + (bx + barW / 2) + "' y='" + (base + 16) + "' text-anchor='middle' font-size='11' fill='#6b645b'>" + x + "</text>";
+      }
+    }
+    return g + "</svg>";
+  }
+
+
+  function toMathML(src) {
+    let i = 0;
+    const rel = { neq: "≠", ne: "≠", ge: "≥", le: "≤", rightarrow: "→" };
+    function skip() { while (src[i] === " " || src[i] === "\t") i++; }
+    function readName() {
+      let name = "";
+      while (i < src.length && /[a-zA-Z]/.test(src[i])) name += src[i++];
+      return name;
+    }
+    function parseAtom() {
+      skip();
+      const ch = src[i];
+      if (ch === "{") {
+        i++;
+        const inner = parseExpr();
+        skip();
+        if (src[i] === "}") i++;
+        return "<mrow>" + inner + "</mrow>";
+      }
+      if (ch === "(" || ch === "[") {
+        const open = ch;
+        const close = ch === "(" ? ")" : "]";
+        i++;
+        const inner = parseExpr();
+        skip();
+        if (src[i] === close) i++;
+        return "<mrow><mo>" + open + "</mo>" + inner + "<mo>" + close + "</mo></mrow>";
+      }
+      if (ch === "\\") {
+        i++;
+        const name = readName();
+        if (name === "frac") return "<mfrac>" + parseAtom() + parseAtom() + "</mfrac>";
+        if (name === "max") return "<mo>max</mo>";
+        if (name === "quad") return "<mspace width='1em'></mspace>";
+        if (name === "cdot") return "<mo>·</mo>";
+        if (name === "varphi" || name === "phi") return "<mi>φ</mi>";
+        if (name === "ldots") return "<mo>…</mo>";
+        if (rel[name]) return "<mo>" + rel[name] + "</mo>";
+        return "<mtext>" + name + "</mtext>";
+      }
+      if (ch && /[0-9.]/.test(ch)) {
+        let n = "";
+        while (i < src.length && /[0-9.]/.test(src[i])) n += src[i++];
+        return "<mn>" + n + "</mn>";
+      }
+      if (ch && /[a-zA-Z]/.test(ch)) {
+        i++;
+        return "<mi>" + ch + "</mi>";
+      }
+      if (ch === "*") {
+        i++;
+        return "<mo>*</mo>";
+      }
+      return "";
+    }
+    function parseFactor() {
+      let node = parseAtom();
+      while (true) {
+        skip();
+        if (src[i] === "^") { i++; node = "<msup>" + node + parseAtom() + "</msup>"; continue; }
+        if (src[i] === "_") { i++; node = "<msub>" + node + parseAtom() + "</msub>"; continue; }
+        if (src[i] === "*") { i++; node = "<msup>" + node + "<mo>*</mo></msup>"; continue; }
+        break;
+      }
+      return node;
+    }
+    function parseTerm() {
+      skip();
+      let lead = "";
+      if (src[i] === "-") { i++; lead = "<mo>−</mo>"; }
+      else if (src[i] === "+") { i++; lead = "<mo>+</mo>"; }
+      let acc = parseFactor();
+      while (true) {
+        skip();
+        if (!src[i]) break;
+        if (src[i] === "\\") {
+          const save = i;
+          i++;
+          const name = readName();
+          if (name === "cdot") { acc += "<mo>·</mo>" + parseFactor(); continue; }
+          if (rel[name] || name === "quad" || name === "max" || name === "ldots") { i = save; break; }
+          i = save;
+          acc += parseFactor();
+          continue;
+        }
+        if (/[0-9a-zA-Z({\\[]/.test(src[i])) { acc += parseFactor(); continue; }
+        break;
+      }
+      return lead + acc;
+    }
+    function parseExpr() {
+      let acc = parseTerm();
+      while (true) {
+        skip();
+        const ch = src[i];
+        if (ch === "+" || ch === "-" || ch === "=" || ch === "," || ch === ">" || ch === "<") {
+          i++;
+          const shown = ch === "-" ? "−" : ch === ">" ? "&gt;" : ch === "<" ? "&lt;" : ch;
+          acc += "<mo>" + shown + "</mo>" + parseTerm();
+          continue;
+        }
+        if (ch === "\\") {
+          const save = i;
+          i++;
+          const name = readName();
+          if (rel[name]) { acc += "<mo>" + rel[name] + "</mo>" + parseTerm(); continue; }
+          i = save;
+          break;
+        }
+        break;
+      }
+      return acc;
+    }
+    const body = parseExpr();
+    skip();
+    if (i < src.length) return "<span class='note'>" + src + "</span>";
+    return "<math xmlns='http://www.w3.org/1998/Math/MathML'>" + body + "</math>";
+  }
+
+  function rich(text) {
+    return text.split("$").map(function (part, idx) {
+      return idx % 2 ? toMathML(part) : part;
+    }).join("");
+  }
+
+  function bindStepper(steps, paint) {
+    let k = 0;
+    const pills = document.getElementById("step-pills");
+    pills.innerHTML = steps.map(function (s, j) {
+      return "<button type='button' data-k='" + j + "'>" + s.pill + "</button>";
+    }).join("");
+    function go(next) {
+      k = next;
+      paint(steps[k], k, steps.length);
+      document.getElementById("rb-prev").disabled = k === 0;
+      document.getElementById("rb-next").disabled = k === steps.length - 1;
+      document.getElementById("step-cnt").textContent = (k + 1) + " / " + steps.length;
+      pills.querySelectorAll("button").forEach(function (b) {
+        b.classList.toggle("on", +b.getAttribute("data-k") === k);
+      });
+    }
+    document.getElementById("rb-prev").onclick = function () { if (k > 0) go(k - 1); };
+    document.getElementById("rb-next").onclick = function () { if (k < steps.length - 1) go(k + 1); };
+    pills.onclick = function (e) {
+      const b = e.target.closest("button[data-k]");
+      if (!b) return;
+      go(+b.getAttribute("data-k"));
+    };
+    go(0);
+  }
+
+  const slides = [
+    {
+      id: "setup",
+      phase: "Постановка",
+      toc: "Постановка",
+      title: "Постановка: что в задаче есть",
+      lead: "Девять фраз. Стрелка произносит следующую. Справа то, что говорим. Слева схема на шести единицах, снизу строка, которая остаётся в постановке.",
+      html: `
+        <div class="rebuild-nav">
+          <button class="nav-btn" id="rb-prev" type="button">←</button>
+          <button class="nav-btn" id="rb-next" type="button">→</button>
+          <span class="cnt" id="step-cnt"></span>
+          <span class="hint">стрелки — следующая фраза</span>
+        </div>
+        <div class="idea-pills" id="step-pills"></div>
+        <div class="alg-layout">
+          <div>
+            <div class="setup-board" id="setup-board"></div>
+            <div class="card sheet" id="setup-sheet" style="margin-top:12px"></div>
+          </div>
+          <div class="alg-side">
+            <div class="say" id="setup-say"></div>
+            <div class="card" id="setup-card"></div>
+          </div>
+        </div>
+        <p class="note">Числа на схеме учебные, к курсам отношения не имеют. Конспект: <a href="Задачи_динамического_программирования.pdf">планшет</a>. Методичка: <a href="Методические%20материалы%20к%20лабораторной%20работе.pdf">лабораторная работа</a>.</p>`,
+      onEnter: function () {
+        const F = 6;
+        const wRows = [
+          [0, 4, 7, 9, 10],
+          [0, 5, 8, 10, 11],
+          [0, 3, 6, 8, 9]
+        ];
+        const sub = "₁₂₃₄";
+        let x = [2, 2, 2];
+        let focus = 0;
+        function stateBefore(i) {
+          let s = F;
+          for (let j = 0; j < i; j++) s -= x[j];
+          return s;
+        }
+        function setGive(v) {
+          if (focus >= 2) return;
+          const S = stateBefore(focus);
+          const max = S - (2 - focus);
+          x[focus] = Math.max(1, Math.min(max, v));
+          let left = S - x[focus];
+          for (let j = focus + 1; j < 2; j++) {
+            const maxJ = left - (2 - j);
+            if (x[j] > maxJ) x[j] = maxJ;
+            if (x[j] < 1) x[j] = 1;
+            left -= x[j];
+          }
+          x[2] = left;
+        }
+        const lines = [
+          "Один ресурс делим между объектами. Сумма порций равна всему ресурсу. Цель — сумма эффектов.",
+          "Этап $i$ — объект с номером $i$, $i = 1, \\ldots, n$. Это очередной объект, не момент времени.",
+          "Управление $x_i$ — сколько ресурса отдаём этапу $i$.",
+          "Состояние $S_i$ — остаток ресурса перед этапом $i$.",
+          "Переход $S_{i+1} = S_i - x_i$.",
+          "Вклад этапа $w_i(x_i)$ берётся из его таблицы.",
+          "Цель $W = w_1(x_1) + \\ldots + w_n(x_n) \\rightarrow \\max$.",
+          "Старт: $S_1$ равен всему ресурсу. Конец: остаток $0$. Управление только допустимое.",
+          "Ответ — максимальное $W$ и набор $x_1, \\ldots, x_n$."
+        ];
+        const steps = [
+          {
+            pill: "1. Ресурс",
+            say: "Делим один ограниченный ресурс между несколькими объектами. Каждому достаётся своя порция, в сумме порции равны всему ресурсу. У каждого объекта свой эффект от полученной порции. Ищем раздачу с наибольшей суммой эффектов.",
+            board: ["Ресурс один, обозначим его объём $F$.", "Объектов $n$. Порция объекта $i$ потом станет управлением."]
+          },
+          {
+            pill: "2. Этап",
+            say: "Объект с номером $i$ называем этапом $i$. Этапов столько же, сколько объектов. Этап здесь не час и не день: это очередной объект, которому сейчас отдаём ресурс. Внизу схемы три этапа, их можно переключать.",
+            board: ["$i = 1, \\ldots, n$", "Порядок этапов задаёт порядок счёта. На содержательный порядок он может не влиять."]
+          },
+          {
+            pill: "3. Управление",
+            say: "Управление на этапе — сколько ресурса отдаём этому объекту. Это число выбираем мы. На схеме переключите этап и отдайте ему часть текущего остатка. Последний этап забирает всё, что до него дошло.",
+            board: ["$x_i$ — управление на этапе $i$.", "Пока $x_i$ не выбрано, остаток следующего этапа неизвестен."]
+          },
+          {
+            pill: "4. Состояние",
+            say: "Состояние — то, что нужно знать перед этапом, чтобы решать дальше. Здесь в него кладём остаток ресурса: эффект объекта зависит только от его порции. Если эффект зависит от того, кому уже отдали, в состояние дописываем и это.",
+            board: ["$S_i$ — состояние перед этапом $i$.", "В этой задаче $S_i$ — неотданный остаток."]
+          },
+          {
+            pill: "5. Переход",
+            say: "Отдали $x_i$ из остатка $S_i$. Следующему этапу остаётся $S_i - x_i$. Правило, которое по состоянию и управлению выдаёт новое состояние, называется переходом. Переключите этап: слева стоит остаток после предыдущих, справа уходит следующему.",
+            board: ["$S_{i+1} = \\varphi_i(S_i, x_i) = S_i - x_i$", "На схеме: отдали выбранное число, справа остаток."]
+          },
+          {
+            pill: "6. Вклад",
+            say: "Этап сразу приносит эффект от своей порции. Эффект берём из таблицы этого объекта, от остальных порций он не зависит. На схеме числа учебные: видно, что очередная единица добавляет всё меньше.",
+            board: ["Вклад этапа равен $w_i(x_i)$.", "Прибавка от следующей единицы: разность соседних клеток таблицы."]
+          },
+          {
+            pill: "7. Цель",
+            say: "Цель $W$ — сумма вкладов всех этапов. Её максимизируем. Если эффекты перемножаются, на месте суммы стоит произведение. Сегодня в цели сумма.",
+            board: ["$W = w_1(x_1) + \\ldots + w_n(x_n) \\rightarrow \\max$"]
+          },
+          {
+            pill: "8. Край",
+            say: "Перед первым этапом остаток равен всему ресурсу. После последнего этапа остаток ноль: ресурс использован весь. На этапе управление берём допустимое. Оно не меньше обязательного минимума, и следующим объектам их минимум ещё остаётся.",
+            board: ["$S_1 = F$, после последнего этапа остаток $0$.", "$x_i$ целое и лежит в допустимом наборе этого состояния."]
+          },
+          {
+            pill: "9. Ответ",
+            say: "В ответе два предмета: максимальное $W$ и сам набор управлений. Одно число без плана задачу не закрывает. Дальше этот список заполняем на десяти курсах и считаем таблицы с последнего факультета.",
+            board: ["Ищем $\\max W$ и $x_1, \\ldots, x_n$.", "Дальше: модель курсов, таблицы Беллмана, план (8, 1, 1) со суммой 115, задание по портфелю."]
+          }
+        ];
+        function chips(n, color) {
+          let h = "<div class='chips'>";
+          for (let t = 0; t < n; t++) h += "<i style='background:" + color + "'></i>";
+          if (!n) h += "<span class='note' style='margin:0'>0</span>";
+          return h + "</div>";
+        }
+        function draw(k) {
+          const showSplit = k >= 2;
+          const S = stateBefore(focus);
+          const give = x[focus];
+          const rightN = S - give;
+          const hot = ["left", "stages", "mid", "left", "both", "mid", "stages", "ends", "all"][k];
+          const leftHot = hot === "left" || hot === "both" || hot === "ends" || hot === "all";
+          const midHot = hot === "mid" || hot === "both" || hot === "all";
+          const rightHot = hot === "both" || hot === "ends" || hot === "all";
+          let board = "<div class='setup-flow'>";
+          board += "<div class='col'><div class='lbl'>" + (k >= 3 ? "перед этапом " + (focus + 1) : "ресурс") + "</div>";
+          board += "<div class='box" + (leftHot ? " hot" : "") + "'>";
+          if (!showSplit) {
+            board += "<b>" + F + " ед.</b>" + chips(F, "var(--accent)");
+          } else {
+            board += "<b>S" + sub[focus] + " = " + S + "</b><span class='note' style='margin:0'>остаток до выбора</span>";
+          }
+          board += "</div></div>";
+          board += "<div class='arr'>" + (showSplit ? "отдать<br>" + give : "→") + "</div>";
+          board += "<div class='col'><div class='lbl'>этап " + (focus + 1) + "</div>";
+          board += "<div class='box" + (midHot ? " hot" : "") + "'>";
+          board += "<b>объект " + (focus + 1) + "</b>";
+          board += showSplit ? chips(give, fcolor[focus]) : "<span class='note' style='margin:0'>порция ещё не выбрана</span>";
+          if (k >= 5 && showSplit) board += "<div style='margin-top:6px'>эффект " + wRows[focus][give] + "</div>";
+          board += "</div></div>";
+          board += "<div class='arr'>" + (showSplit ? (focus === 2 ? "конец<br>0" : "дальше<br>" + rightN) : "") + "</div>";
+          board += "<div class='col'><div class='lbl'>" + (focus === 2 ? "после последнего" : "следующий этап") + "</div>";
+          board += "<div class='box" + (rightHot ? " hot" : "") + "'>";
+          board += "<b>" + (showSplit ? (focus === 2 ? "0" : "S" + sub[focus + 1] + " = " + rightN) : "…") + "</b>";
+          board += showSplit && focus < 2 ? chips(rightN, "var(--accent)") : "";
+          board += "</div></div>";
+          board += "</div>";
+          board += "<div class='stage-row" + (hot === "stages" || hot === "all" ? " hot" : "") + "'>";
+          for (let s = 0; s < 3; s++) {
+            const cls = (k >= 1 && s === focus ? "on" : "") + (k >= 2 && s < focus ? " done" : "");
+            const label = "этап " + (s + 1) + (k >= 2 ? " · x=" + x[s] : "");
+            if (k >= 1) board += "<button type='button' data-stage='" + s + "' class='" + cls + "'>" + label + "</button>";
+            else board += "<button type='button' disabled class='" + cls + "'>" + label + "</button>";
+          }
+          board += "</div>";
+          if (k >= 2 && focus < 2) {
+            const max = S - (2 - focus);
+            board += "<div class='idea-pills' id='amt' style='margin:10px 0 0'>";
+            for (let v = 1; v <= max; v++) {
+              board += "<button type='button' data-x='" + v + "'" + (v === give ? " class='on'" : "") + ">отдать " + v + "</button>";
+            }
+            board += "</div>";
+          } else if (k >= 2) {
+            board += "<p class='pathline'>Последний этап забирает остаток целиком: x" + sub[2] + " = " + give + ", после него 0.</p>";
+          }
+          if (k >= 2) {
+            let path = "S" + sub[0] + "=" + F;
+            let acc = F;
+            let W = 0;
+            for (let i = 0; i < 3; i++) {
+              W += wRows[i][x[i]];
+              acc -= x[i];
+              path += " → x" + sub[i] + "=" + x[i] + " → " + (i === 2 ? "0" : "S" + sub[i + 1] + "=" + acc);
+            }
+            board += "<p class='pathline'>" + path + (k >= 5 ? ". Сумма эффектов " + W : "") + ".</p>";
+          }
+          document.getElementById("setup-board").innerHTML = board;
+          document.getElementById("setup-board").onclick = function (e) {
+            const st = e.target.closest("button[data-stage]");
+            if (st) {
+              focus = +st.getAttribute("data-stage");
+              draw(k);
+              return;
+            }
+            const b = e.target.closest("button[data-x]");
+            if (!b) return;
+            setGive(+b.getAttribute("data-x"));
+            draw(k);
+          };
+          document.getElementById("setup-say").innerHTML = rich(steps[k].say);
+          let card = "<h3>На доске</h3>";
+          steps[k].board.forEach(function (ln) {
+            card += "<p>" + rich(ln) + "</p>";
+          });
+          if (k >= 2) {
+            const Snow = stateBefore(focus);
+            const xi = x[focus];
+            const eff = wRows[focus][xi];
+            const delta = eff - wRows[focus][xi - 1];
+            card += "<p class='note'>Схема, этап " + (focus + 1) + ": перед ним " + Snow + ", отдали " + xi + ", дальше " + (Snow - xi) + (k >= 5 ? ", эффект " + eff + ", прибавка от последней единицы +" + delta : "") + ".</p>";
+          }
+          document.getElementById("setup-card").innerHTML = card;
+          let sheet = "<h3>Постановка, как она собирается</h3>";
+          lines.forEach(function (ln, j) {
+            const cls = j === k ? "now" : (j > k ? "wait" : "");
+            sheet += "<div class='line " + cls + "'>" + (j + 1) + ". " + rich(ln) + "</div>";
+          });
+          document.getElementById("setup-sheet").innerHTML = sheet;
+        }
+        bindStepper(steps, function (_s, k) { draw(k); });
+      }
+    },
+    {
+      id: "ex",
+      phase: "Пример",
+      toc: "Пример",
+      title: "Десять курсов на трёх факультетах",
+      lead: "Студент занимает 10 мест. Курсы трёх факультетов, на каждом хотя бы один. Баллы факультета зависят только от того, сколько его курсов взято.",
+      html: `
+        <div class="say">Ищем числа курсов $x_1, x_2, x_3$, сумма баллов максимальна, сумма курсов равна 10.</div>
+        <div class="geom-layout">
+          <div>
+            <div class="fig" id="bar-fig"></div>
+            <div class="geom-legend">
+              <span><i class="sw" style="background:#1f4d63"></i>факультет 1</span>
+              <span><i class="sw" style="background:#3f6212"></i>факультет 2</span>
+              <span><i class="sw" style="background:#b45309"></i>факультет 3</span>
+              <span>высота столбца — баллы, подпись снизу — число курсов</span>
+            </div>
+          </div>
+          <div class="geom-story">
+            <div class="card">
+              <h3>Баллы $w_i(x_i)$</h3>
+              <div id="income"></div>
+              <p class="note">Таблица обрывается на 8: двум другим факультетам нужен хотя бы один курс, 10 − 1 − 1 = 8.</p>
+            </div>
+            <div class="card">
+              <h3>Задача</h3>
+              <p class="eq">$W = w_1(x_1) + w_2(x_2) + w_3(x_3) \\rightarrow \\max$</p>
+              <p class="eq">$x_1 + x_2 + x_3 = 10, \\quad x_i \\ge 1, \\quad x_i$ целые</p>
+            </div>
+          </div>
+        </div>`,
+      onEnter: function () {
+        document.getElementById("bar-fig").innerHTML = barsSvg();
+        document.getElementById("income").innerHTML = incomeTable();
+        document.querySelectorAll(".say, .card p, .card h3").forEach(function (p) {
+          if (p.querySelector("math, table")) return;
+          p.innerHTML = rich(p.textContent);
+        });
+      }
+    },
+    {
+      id: "brute",
+      phase: "Перебор",
+      toc: "Перебор",
+      title: "Полный перебор",
+      lead: "Все допустимые тройки можно выписать. Максимум среди них и есть ответ. На трёх факультетах список короткий, на задании с портфелем он уже неподъёмный.",
+      html: `
+        <div class="alg-layout">
+          <div class="card">
+            <h3>Все допустимые планы</h3>
+            <div class="plan-grid" id="plan-grid"></div>
+            <p class="note">Зелёная клетка — максимум. Клетка открывает разложение суммы.</p>
+          </div>
+          <div class="alg-side">
+            <div class="say" id="brute-say"></div>
+            <div class="card" id="brute-card"></div>
+          </div>
+        </div>`,
+      onEnter: function () {
+        const plans = [];
+        for (let a = 1; a <= 8; a++) {
+          for (let b = 1; b <= 8; b++) {
+            const c = 10 - a - b;
+            if (c < 1 || c > 8) continue;
+            plans.push({ x: [a, b, c], sum: w[0][a] + w[1][b] + w[2][c] });
+          }
+        }
+        plans.sort(function (p, q) { return q.sum - p.sum || p.x[0] - q.x[0]; });
+        const best = plans[0].sum;
+        let cur = 0;
+        function paint() {
+          const grid = document.getElementById("plan-grid");
+          grid.innerHTML = plans.map(function (p, j) {
+            const cls = (p.sum === best ? "best" : "") + (j === cur ? " on" : "");
+            return "<button type='button' data-j='" + j + "' class='" + cls + "'>" + p.x.join("+") + " = " + p.sum + "</button>";
+          }).join("");
+          const p = plans[cur];
+          document.getElementById("brute-say").innerHTML = rich(
+            "Допустимых троек " + plans.length + ". У каждой свой балл, максимум " + best +
+            " при (" + plans[0].x.join(", ") + "). Перебор ответ находит. Число планов — число способов разложить 7 лишних курсов по трём факультетам, это 36. Факультет или десяток курсов сверху умножают список."
+          );
+          let card = "<h3>Выбранный план</h3>" + squares(p.x);
+          card += "<p>" + rich("$w_1(" + p.x[0] + ") + w_2(" + p.x[1] + ") + w_3(" + p.x[2] + ") = " + w[0][p.x[0]] + " + " + w[1][p.x[1]] + " + " + w[2][p.x[2]] + " = " + p.sum + "$") + "</p>";
+          card += "<p class='note'>Курсов " + p.x.join(" + ") + " = 10, каждый факультет получил хотя бы один.</p>";
+          document.getElementById("brute-card").innerHTML = card;
+        }
+        document.getElementById("plan-grid").onclick = function (e) {
+          const b = e.target.closest("button[data-j]");
+          if (!b) return;
+          cur = +b.getAttribute("data-j");
+          paint();
+        };
+        paint();
+      }
+    },
+    {
+      id: "easy",
+      phase: "Беллман",
+      toc: "Простой пример",
+      title: "Сначала простой пример",
+      lead: "Два факультета и четыре курса. Стрелка идёт с последнего: его строку выписываем до всякого решения про первый. Числа учебные.",
+      html: `
+        <div class="rebuild-nav">
+          <button class="nav-btn" id="rb-prev" type="button">←</button>
+          <button class="nav-btn" id="rb-next" type="button">→</button>
+          <span class="cnt" id="step-cnt"></span>
+          <span class="hint">стрелки идут с последнего факультета</span>
+        </div>
+        <div class="idea-pills" id="step-pills"></div>
+        <div class="card" id="easy-board"></div>
+        <div class="alg-layout one" id="easy-split" style="margin-top:12px">
+          <div class="card" id="easy-calc"></div>
+          <div class="alg-side">
+            <div class="say" id="easy-say"></div>
+            <div class="pin" id="easy-pin"></div>
+          </div>
+        </div>`,
+      onEnter: function () {
+        const a = [0, 5, 8, 9];
+        const b = [0, 6, 7, 11];
+        const opts = [
+          { x: 1, rest: 3, sum: 16 },
+          { x: 2, rest: 2, sum: 15 },
+          { x: 3, rest: 1, sum: 15 }
+        ];
+        const steps = [
+          {
+            pill: "1. Задача",
+            say: "Сначала метод на коротком примере. Два факультета, А и Б, и четыре курса. Каждому хотя бы один, значит А может взять 1, 2 или 3. Числа в таблице учебные."
+          },
+          {
+            pill: "2. С конца",
+            say: "С конца значит: сначала выписываем последнего. Последний здесь Б. После него курсы отдавать некому, сколько останется, столько он и заберёт. Для одного курса записываем 6, для двух 7, для трёх 11. Про А ещё ничего не решаем."
+          },
+          {
+            pill: "3. А берёт 1",
+            say: "Теперь А, перед ним все 4 курса. Берёт один: в его строке это 5. Б остаются три, для трёх уже записано 11. Складываем $5 + 11 = 16$."
+          },
+          {
+            pill: "4. А берёт 2",
+            say: "А берёт два: это 8. Б остаются два, там записано 7. Сумма $8 + 7 = 15$."
+          },
+          {
+            pill: "5. А берёт 3",
+            say: "А берёт три: это 9. Б остаётся один, там записано 6. Сумма $9 + 6 = 15$."
+          },
+          {
+            pill: "6. Ответ",
+            say: "Оставляем 16. А получает 1 курс, Б получает 3. Дальше на десяти курсах тот же порядок: сначала последний факультет, потом на один шаг назад."
+          }
+        ];
+        let kShown = 0;
+        function activeOpt() {
+          if (kShown < 2) return null;
+          return opts[kShown >= 5 ? 0 : kShown - 2];
+        }
+        function board() {
+          const active = activeOpt();
+          let h = "<h3>Два факультета, четыре курса</h3><table class='sx'><thead><tr><th>курсов</th>";
+          for (let x = 1; x <= 3; x++) {
+            let hc = "";
+            if (active && active.x === x && active.rest === x) hc = "both";
+            else if (active && active.x === x) hc = "from";
+            else if (active && active.rest === x) hc = "tail";
+            else if (kShown === 1) hc = "tail";
+            h += "<th class='" + hc + "'>" + x + "</th>";
+          }
+          h += "</tr></thead><tbody><tr><td class='lab'>А</td>";
+          for (let x = 1; x <= 3; x++) {
+            const c = active && active.x === x ? " from" : "";
+            h += "<td class='num" + c + "'>" + a[x] + "</td>";
+          }
+          h += "</tr><tr><td class='lab'>Б</td>";
+          for (let x = 1; x <= 3; x++) {
+            let c = "";
+            if (kShown === 1) c = " tail";
+            else if (active && active.rest === x) c = " tail";
+            h += "<td class='num" + c + "'>" + b[x] + "</td>";
+          }
+          h += "</tr><tr><td class='lab'>выписали Б</td>";
+          for (let x = 1; x <= 3; x++) {
+            if (kShown === 0) { h += "<td class='num'>·</td>"; continue; }
+            let c = "";
+            if (kShown === 1) c = " tail";
+            else if (active && active.rest === x) c = " tail";
+            h += "<td class='num" + c + "'>" + b[x] + "</td>";
+          }
+          h += "</tr></tbody></table>";
+          let cap = "Две строки баллов. Третью заполняем с последнего факультета, про А пока не думаем.";
+          if (kShown === 1) cap = "Оранжевые клетки — строка Б. Её выписали первой: 6, 7 и 11.";
+          else if (active && kShown < 5) cap = "Синяя клетка — балл А, столбец " + active.x + ". Оранжевая — уже записанный балл Б, столбец " + active.rest + ". Вместе курсов " + active.x + " + " + active.rest + " = 4.";
+          else if (kShown >= 5) cap = "Пара с суммой 16: А берёт столбец 1, Б получает столбец 3. Две другие суммы меньше.";
+          h += "<p class='note'>" + cap + "</p>";
+          h += "<p class='note'><span class='sw' style='background:#1f4d63'></span>балл А <span class='sw' style='background:#b45309'></span>балл Б, записанный с конца</p>";
+          return h;
+        }
+        function calc() {
+          if (kShown < 2) return "";
+          const open = kShown >= 5 ? 3 : kShown - 1;
+          const focus = kShown >= 5 ? 0 : kShown - 2;
+          let h = "<h3>Варианты факультета А</h3>";
+          h += "<table class='sx'><thead><tr><th>А взял</th><th>балл А</th><th>осталось Б</th><th>уже записано</th><th>сумма</th></tr></thead><tbody>";
+          opts.forEach(function (r, j) {
+            const seen = j < open;
+            const hot = seen && j === focus;
+            h += "<tr" + (hot ? " class='now'" : "") + ">";
+            h += "<td>" + (seen ? r.x : "·") + "</td>";
+            h += "<td class='num" + (hot ? " from" : "") + "'>" + (seen ? a[r.x] : "·") + "</td>";
+            h += "<td>" + (seen ? r.rest : "·") + "</td>";
+            h += "<td class='num" + (hot ? " tail" : "") + "'>" + (seen ? b[r.rest] : "·") + "</td>";
+            h += "<td class='num" + (seen && kShown >= 5 && r.sum === 16 ? " write" : "") + "'>" + (seen ? r.sum : "·") + "</td></tr>";
+          });
+          h += "</tbody></table>";
+          h += "<p class='note'>" + (kShown >= 5
+            ? "Зелёная сумма 16 остаётся. План: А получает 1, Б получает 3."
+            : "Точка — этот вариант ещё не складывали.") + "</p>";
+          return h;
+        }
+        function draw(k) {
+          kShown = k;
+          document.getElementById("easy-board").innerHTML = board();
+          document.getElementById("easy-calc").innerHTML = calc();
+          document.getElementById("easy-calc").style.display = k < 2 ? "none" : "";
+          document.getElementById("easy-split").classList.toggle("one", k < 2);
+          document.getElementById("easy-say").innerHTML = rich(steps[k].say);
+          const r = activeOpt();
+          let pin = "";
+          if (k === 0) {
+            pin = "<h3>Что делим</h3><div class='dline'><p class='sayline'>4 курса, каждому факультету хотя бы один.</p></div>";
+          } else if (k === 1) {
+            pin = "<h3>Строка последнего</h3>";
+            pin += "<div class='dline'>" + toMathML("1 \\rightarrow 6") + "</div>";
+            pin += "<div class='dline'>" + toMathML("2 \\rightarrow 7") + "</div>";
+            pin += "<div class='dline'>" + toMathML("3 \\rightarrow 11") + "</div>";
+          } else if (r && k < 5) {
+            pin = "<h3>Складываем</h3>";
+            pin += "<div class='dline'>" + toMathML(a[r.x] + " + " + b[r.rest] + " = " + r.sum) + "</div>";
+            pin += "<div class='dline'><p class='sayline'>А берёт " + r.x + ", Б получает " + r.rest + ".</p></div>";
+          } else {
+            pin = "<h3>Что оставляем</h3>";
+            pin += "<div class='dline'>" + toMathML("16") + "<p class='sayline'>А получает 1 курс, Б получает 3.</p></div>";
+          }
+          document.getElementById("easy-pin").innerHTML = pin;
+        }
+        bindStepper(steps, function (_s, k) { draw(k); });
+      }
+    },
+    {
+      id: "s3",
+      phase: "Решение",
+      toc: "Факультет 3",
+      title: "Решение: третий факультет",
+      lead: "Дальше наш пример, тем же порядком, что и короткий. Сначала выписываем последнего: третьего факультета.",
+      html: `
+        <div class="card" id="sheet3"></div>
+        <div class="say" style="margin-top:12px">Третий факультет последний. Сколько курсов останется, столько он и заберёт. Строка «выписали 3» — это его баллы.</div>
+        <div class="grid-2">
+          <div class="card">
+            <h3>Одна клетка, осталось 5</h3>
+            <p>Третий забирает все 5. В его строке это 45. В «выписали 3» записываем 45.</p>
+            <p>Так заполняется вся строка: число в ней совпадает с баллом третьего факультета.</p>
+          </div>
+          <div class="card">
+            <h3>Почему строка именно такая</h3>
+            <p>Отдать ему 4 курса при остатке 5 нельзя: один курс останется без факультета.</p>
+            <p>Для 1 и 2 курсов в строке одинаково 10. Второй курс третьего факультета баллов не добавляет.</p>
+          </div>
+        </div>`,
+      onEnter: function () {
+        const marks = { f3: {}, out3: {} };
+        for (let s = 1; s <= 8; s++) {
+          marks.f3[s] = "tail";
+          marks.out3[s] = "tail";
+        }
+        document.getElementById("sheet3").innerHTML = courseSheet({
+          cols: 8,
+          dim: { f1: true, f2: true },
+          out3: true,
+          marks: marks,
+          note: "Оранжевые клетки — строка третьего факультета. Её выписали первой, как строку Б в коротком примере. Для одного и двух курсов там 10."
+        });
+        document.querySelectorAll(".say, .card p, .card h3").forEach(function (p) {
+          if (p.querySelector && p.querySelector("math, table")) return;
+          if (p.closest && p.closest("#sheet3")) return;
+          p.innerHTML = rich(p.textContent);
+        });
+      }
+    },
+    {
+      id: "s2",
+      phase: "Решение",
+      toc: "Факультет 2",
+      title: "Решение: второй факультет",
+      lead: "Строка третьего уже выписана. Второй пробует, сколько курсов забрать себе, и прибавляет эту строку. Идём от остатка 2 к остатку 9.",
+      html: `
+        <div class="rebuild-nav">
+          <button class="nav-btn" id="rb-prev" type="button">←</button>
+          <button class="nav-btn" id="rb-next" type="button">→</button>
+          <span class="cnt" id="step-cnt"></span>
+          <span class="hint">стрелки меняют, сколько курсов свободно</span>
+        </div>
+        <div class="idea-pills" id="step-pills"></div>
+        <div class="card" id="sheet2"></div>
+        <div class="alg-layout" style="margin-top:12px">
+          <div class="card" id="t2"></div>
+          <div class="pin" id="pin2"></div>
+        </div>`,
+      onEnter: function () {
+        const states = [];
+        for (let s = 2; s <= 9; s++) states.push(s);
+        const steps = states.map(function (S) {
+          return { pill: "осталось " + S, S: S };
+        });
+        bindStepper(steps, function (step) {
+          const pack = pack2[step.S];
+          const marks = { f2: {}, f3: {}, out3: {}, out2: {} };
+          const out2 = {};
+          states.forEach(function (S) {
+            if (S > step.S) return;
+            out2[S] = pack2[S].best;
+          });
+          pack.rows.forEach(function (r) {
+            if (!r.best) return;
+            marks.f2[r.x] = "from";
+            marks.f3[r.rest] = "tail";
+            marks.out3[r.rest] = "tail";
+          });
+          marks.out2[step.S] = "write";
+          document.getElementById("sheet2").innerHTML = courseSheet({
+            cols: 9,
+            dim: { f1: true },
+            out3: true,
+            out2: out2,
+            marks: marks,
+            note: "Синяя клетка — балл факультета 2. Оранжевая — уже выписанный балл факультета 3. Зелёная сумма " + pack.best + " записывается в столбец " + step.S + " строки «выписали 2»."
+          });
+          let h = "<h3>Варианты факультета 2, свободно " + step.S + "</h3>";
+          h += "<table class='sx'><thead><tr><th>2 взял</th><th>балл 2</th><th>осталось 3</th><th>уже записано</th><th>сумма</th></tr></thead><tbody>";
+          pack.rows.forEach(function (r) {
+            h += "<tr" + (r.best ? " class='now'" : "") + ">";
+            h += "<td>" + r.x + "</td><td class='num" + (r.best ? " from" : "") + "'>" + r.a + "</td><td>" + r.rest + "</td><td class='num" + (r.best ? " tail" : "") + "'>" + r.b + "</td><td class='num" + (r.best ? " write" : "") + "'>" + r.sum + "</td></tr>";
+          });
+          h += "</tbody></table>";
+          h += "<p class='note'>Третьему оставляем хотя бы 1 курс, поэтому второй берёт от 1 до " + (step.S - 1) + ".</p>";
+          document.getElementById("t2").innerHTML = h;
+          document.querySelectorAll("#t2 h3, #t2 th, #t2 .note").forEach(function (p) { p.innerHTML = rich(p.textContent); });
+
+          let pin = "<h3>Складываем</h3>";
+          pack.rows.forEach(function (r) {
+            pin += "<div class='dline'>" + toMathML(r.a + " + " + r.b + " = " + r.sum) + "<p class='sayline'>Факультет 2 берёт " + r.x + ", факультету 3 остаётся " + r.rest + ".</p></div>";
+          });
+          let tail = "Оставляем " + pack.best + ". Факультет 2 при этом берёт " + pack.xs.join(" или ") + ".";
+          if (step.S === 2) tail += " Другого допустимого управления нет. На оптимальном пути останется как раз этот остаток.";
+          if (step.S === 3) tail += " Второй курс факультета 3 стоит столько же, сколько первый, поэтому оба свободных курса выгоднее отдать факультету 2.";
+          if (step.S === 5) tail += " Оба управления пишем в таблицу. До этого остатка оптимальный первый шаг не доходит.";
+          pin += "<p class='sayline'>" + rich(tail) + "</p>";
+          document.getElementById("pin2").innerHTML = pin;
+        });
+      }
+    },
+    {
+      id: "s1",
+      phase: "Решение",
+      toc: "Факультет 1",
+      title: "Решение: первый факультет",
+      lead: "Перед первым факультетом все 10 курсов. Он берёт от 1 до 8 и прибавляет уже выписанную строку второго.",
+      html: `
+        <div class="rebuild-nav">
+          <button class="nav-btn" id="rb-prev" type="button">←</button>
+          <button class="nav-btn" id="rb-next" type="button">→</button>
+          <span class="cnt" id="step-cnt"></span>
+          <span class="hint">стрелки меняют, сколько берёт первый</span>
+        </div>
+        <div class="idea-pills" id="step-pills"></div>
+        <div class="card" id="sheet1"></div>
+        <div class="alg-layout" style="margin-top:12px">
+          <div class="card" id="t1"></div>
+          <div class="pin" id="pin1"></div>
+        </div>`,
+      onEnter: function () {
+        const steps = rows1.map(function (r) { return { pill: "берёт " + r.x, row: r }; });
+        bindStepper(steps, function (step) {
+          const cur = step.row;
+          const marks = { f1: {}, out2: {} };
+          const out2 = {};
+          marks.f1[cur.x] = "from";
+          marks.out2[cur.rest] = "tail";
+          for (let s = 2; s <= 9; s++) out2[s] = pack2[s].best;
+          document.getElementById("sheet1").innerHTML = courseSheet({
+            cols: 9,
+            dim: { f2: true, f3: true },
+            out3: true,
+            out2: out2,
+            marks: marks,
+            note: "Синяя клетка — балл факультета 1. Оранжевая — уже выписанная сумма факультета 2. Вместе " + cur.a + " + " + cur.tail + " = " + cur.sum + "."
+          });
+          let h = "<h3>Варианты факультета 1</h3><table class='sx'><thead><tr><th>1 взял</th><th>балл 1</th><th>осталось</th><th>уже записано</th><th>сумма</th></tr></thead><tbody>";
+          rows1.forEach(function (r) {
+            const hot = r.x === cur.x;
+            h += "<tr" + (hot ? " class='now'" : "") + "><td>" + r.x + "</td><td class='num" + (hot ? " from" : "") + "'>" + r.a + "</td><td>" + r.rest + "</td><td class='num" + (hot ? " tail" : "") + "'>" + r.tail + "</td><td class='num" + (r.best ? " write" : "") + "'>" + r.sum + "</td></tr>";
+          });
+          h += "</tbody></table>";
+          document.getElementById("t1").innerHTML = h;
+          document.querySelectorAll("#t1 th").forEach(function (p) { p.innerHTML = rich(p.textContent); });
+
+          let note = "Сумма " + cur.sum + ". Лучшая из восьми — " + best1.sum + ", когда первый берёт " + best1.x + ".";
+          if (cur.x === 7) {
+            const gainNow = w[0][8] - w[0][7];
+            const gainTail = pack2[3].best - pack2[2].best;
+            note = "Ближайшая строка. Восьмой курс первого добавляет " + gainNow + ". Если оставить его второму, уже выписанная сумма вырастет с " + pack2[2].best + " до " + pack2[3].best + ", на " + gainTail + ". В сумме это меньше.";
+          }
+          if (cur.x === 8) {
+            note = "Максимум " + cur.sum + ". Первый берёт 8. Остаётся 2, и для двух курсов второй берёт 1.";
+          }
+          if (cur.x === 5) {
+            note = "Для оставшихся " + cur.rest + " курсов у второго два равных варианта: он берёт " + cur.xs.join(" или ") + ". Сумма " + cur.sum + " ниже " + best1.sum + ".";
+          }
+          document.getElementById("pin1").innerHTML =
+            "<h3>Складываем</h3>" +
+            "<div class='dline'>" + toMathML(cur.a + " + " + cur.tail + " = " + cur.sum) + "<p class='sayline'>Факультет 1 берёт " + cur.x + ", следующим остаётся " + cur.rest + ".</p></div>" +
+            "<div class='dline'><p class='sayline'>" + note + "</p></div>";
+        });
+      }
+    },
+    {
+      id: "answer",
+      phase: "Ответ",
+      toc: "Ответ",
+      title: "Как оформить ответ",
+      lead: "После таблиц в ответ входят четыре строки. Слева они заполнены для десяти курсов: так ответ выглядит. Справа те же строки, которые пишут в выводах отчёта.",
+      html: `
+        <div class="alg-layout">
+          <div class="card" id="ans-sample">
+            <h3>Образец на десяти курсах</h3>
+            <ol class="steps">
+              <li><span class="num">1</span><div>Оптимальное значение — <b>115</b> баллов.</div></li>
+              <li><span class="num">2</span><div>План <b>(8, 1, 1)</b>.<div id="ans-squares"></div>Факультет 1 получает 8 курсов и 90 баллов. Факультет 2 получает 1 курс и 15 баллов. Факультет 3 получает 1 курс и 10 баллов.</div></li>
+              <li><span class="num">3</span><div>План единственный. При двух оставшихся курсах второму факультету можно отдать только один, третьему остаётся один.</div></li>
+              <li><span class="num">4</span><div>Проверка.<p class="eq">$8 + 1 + 1 = 10$</p><p class="eq">$90 + 15 + 10 = 115$</p>Курсы сошлись с десятью, баллы сошлись со значением.</div></li>
+            </ol>
+            <p class="note">Этот пример в отчёт не переписывают. Он показывает, какого вида текст получается из таблиц.</p>
+          </div>
+          <div class="card" id="ans-form">
+            <h3>Четыре строки выводов</h3>
+            <ol class="steps">
+              <li><span class="num">1</span><div>Какое оптимальное значение получено.</div></li>
+              <li><span class="num">2</span><div>Какой план его обеспечивает: сколько отдано на каждом этапе и какой балл это дало.</div></li>
+              <li><span class="num">3</span><div>Единственный ли план. Если лучших планов несколько, записать каждый.</div></li>
+              <li><span class="num">4</span><div>Совпали ли ручной счёт и печать программы: одно и то же значение и один и тот же план.</div></li>
+            </ol>
+            <p>Под этими строками в работе лежат таблицы, из которых план прочитан, и проверка ограничений.</p>
+            <p class="note">В ответе рядом со значением всегда стоит план.</p>
+          </div>
+        </div>`,
+      onEnter: function () {
+        document.getElementById("ans-squares").innerHTML = squares([8, 1, 1]);
+        document.querySelectorAll("#ans-sample .eq").forEach(function (p) {
+          p.innerHTML = rich(p.textContent);
+        });
+      }
+    },
+    {
+      id: "hw",
+      phase: "Задание",
+      toc: "Свой вариант",
+      title: "Свой вариант",
+      lead: "Номер варианта: номер в потоке по модулю 20. Остаток 0 означает вариант 20. Для 32 это 12. Задача того же вида, что десять курсов. Ограничение в тексте, в таблицу отдельной строкой не вынесено. Ответ — четыре строки: значение, план, единственный ли он, проверка. Вариант 3 — на минимум, остальные — на максимум.",
+      html: `
+        <div class="stream-pick">
+          <label for="stream-n">Номер в потоке</label>
+          <input id="stream-n" type="number" min="1" inputmode="numeric">
+          <span class="got" id="stream-out"></span>
+        </div>
+        <div class="rebuild-nav">
+          <button class="nav-btn" id="rb-prev" type="button">←</button>
+          <button class="nav-btn" id="rb-next" type="button">→</button>
+          <span class="cnt" id="step-cnt"></span>
+          <span class="hint">стрелки листают варианты</span>
+        </div>
+        <div class="idea-pills" id="step-pills"></div>
+        <div class="card" id="var-board"></div>`,
+      onEnter: function () {
+        const variants = [
+          {
+            pill: "1", theme: "Маршруты", title: "Дорога к морю",
+            text: "Из A в B ведут три участка: перевал, долина и берег. На дорогу есть 9 суток, их все нужно распределить. Участок, на котором не провели ни одних суток, считается непройденным, так маршрут не засчитывают. На берегу сезон короткий: больше 4 суток там быть нельзя. Интерес поездки — сумма оценок трёх участков.",
+            head: ["суток", "1", "2", "3", "4", "5", "6", "7"],
+            rows: [
+              ["перевал", "4", "6", "9", "11", "12", "13", "14"],
+              ["долина", "5", "9", "12", "14", "15", "16", "16"],
+              ["берег", "7", "10", "14", "20", "28", "30", "31"]
+            ],
+            ask: "Найдите распределение с наибольшим интересом."
+          },
+          {
+            pill: "2", theme: "Маршруты", title: "Три города по пути",
+            text: "Из A в B заезжают в три города по порядку. На остановки есть 8 дней, все их проводят в этих городах. В каждом городе ночуют хотя бы одну ночь. В первом городе гостиница держит номер только до трёх ночей. Польза командировки складывается из оценок городов.",
+            head: ["дней", "1", "2", "3", "4", "5", "6"],
+            rows: [
+              ["первый", "6", "11", "15", "22", "26", "29"],
+              ["второй", "4", "8", "13", "16", "18", "19"],
+              ["третий", "5", "9", "12", "16", "19", "21"]
+            ],
+            ask: "Найдите распределение с наибольшей пользой."
+          },
+          {
+            pill: "3", theme: "Маршруты", title: "Три склада",
+            text: "Грузовик везёт 10 тонн из A в B и разгружает их на трёх складах по дороге. Каждый склад принимает хотя бы одну тонну, пустой склад рейс не закрывает. Третий склад по договору берёт не больше 5 тонн. В таблице — затраты на хранение, их нужно сделать как можно меньше.",
+            head: ["тонн", "1", "2", "3", "4", "5", "6", "7", "8"],
+            rows: [
+              ["склад 1", "8", "7", "6", "6", "5", "5", "5", "5"],
+              ["склад 2", "8", "7", "6", "6", "5", "5", "5", "5"],
+              ["склад 3", "6", "5", "4", "3", "2", "0", "0", "0"]
+            ],
+            ask: "Найдите разгрузку с наименьшими затратами."
+          },
+          {
+            pill: "4", theme: "Маршруты", title: "Три края",
+            text: "Турист делит 11 ночей между тремя краями. Маршрут засчитывают, только если в каждом крае он ночует хотя бы две ночи: одна ночь для организаторов не считается посещением. Оценка поездки — сумма оценок краёв.",
+            head: ["ночей", "1", "2", "3", "4", "5", "6", "7", "8", "9"],
+            rows: [
+              ["север", "30", "18", "22", "25", "27", "28", "29", "30", "31"],
+              ["центр", "6", "12", "16", "19", "21", "23", "24", "25", "26"],
+              ["юг", "5", "11", "15", "18", "22", "25", "27", "28", "29"]
+            ],
+            ask: "Найдите распределение с наибольшей оценкой."
+          },
+          {
+            pill: "5", theme: "Маршруты", title: "Рейсы в три пункта",
+            text: "За неделю нужно сделать 7 рейсов в три пункта по трассе A–B. В каждый пункт — хотя бы один рейс. В начальный пункт, по правилу диспетчерской, число рейсов чётное. Эффект недели — сумма эффектов трёх пунктов.",
+            head: ["рейсов", "1", "2", "3", "4", "5", "6"],
+            rows: [
+              ["начальный", "5", "9", "22", "16", "18", "20"],
+              ["промежуточный", "4", "9", "13", "15", "16", ""],
+              ["конечный", "6", "10", "14", "17", "19", ""]
+            ],
+            ask: "Найдите распределение с наибольшим эффектом. Пустая клетка значит, что столько рейсов пункт не принимает."
+          },
+          {
+            pill: "6", theme: "Маршруты", title: "Пропуск от трёх дней",
+            text: "Из A в B заезжают в три города по порядку и проводят там все 9 дней командировки. В каждом городе хотя бы один день. В средний город пропуск дают только от трёх дней: на одни и на двое суток его не оформляют, хотя эти клетки в таблице заполнены. Польза — сумма оценок трёх городов.",
+            head: ["дней", "1", "2", "3", "4", "5", "6", "7"],
+            rows: [
+              ["первый", "6", "11", "15", "18", "20", "21", "22"],
+              ["средний", "32", "28", "14", "18", "21", "23", "24"],
+              ["третий", "5", "10", "14", "17", "19", "20", "21"]
+            ],
+            ask: "Найдите распределение с наибольшей пользой."
+          },
+          {
+            pill: "7", theme: "Маршруты", title: "Горный посёлок",
+            text: "Экспедиция делит 10 суток между долиной, горным посёлком и базой. В каждом месте проводят хотя бы сутки. В горный посёлок меньше чем на двое суток не заезжают: за одни сутки группа не успевает подняться и спуститься, такие сутки организатор не засчитывает. Оценка — сумма трёх строк.",
+            head: ["суток", "1", "2", "3", "4", "5", "6", "7", "8"],
+            rows: [
+              ["долина", "5", "9", "13", "16", "18", "19", "20", "21"],
+              ["посёлок", "28", "14", "18", "21", "23", "24", "25", "26"],
+              ["база", "6", "11", "15", "18", "20", "21", "22", "23"]
+            ],
+            ask: "Найдите распределение с наибольшей оценкой."
+          },
+          {
+            pill: "8", theme: "Стартапы", title: "Три раунда, второй короткий",
+            text: "Фонд вкладывает 9 млн в три стартапа. Каждый получает хотя бы 1 млн, иначе доля не оформляется. Второй стартап по договору раунда принимает не больше 4 млн. Доход — сумма трёх строк, в миллионах.",
+            head: ["млн", "1", "2", "3", "4", "5", "6", "7"],
+            rows: [
+              ["первый", "5", "9", "12", "14", "15", "16", "17"],
+              ["второй", "8", "14", "18", "21", "30", "34", "36"],
+              ["третий", "4", "7", "11", "16", "18", "19", "20"]
+            ],
+            ask: "Найдите вложение с наибольшим доходом."
+          },
+          {
+            pill: "9", theme: "Стартапы", title: "Три года одного фонда",
+            text: "10 млн распределяют по трём годам. В каждый год уходит хотя бы 1 млн. В первый год команды ещё нет, поэтому туда нельзя отправить больше 3 млн. Доход фонда — сумма доходов трёх лет.",
+            head: ["млн", "1", "2", "3", "4", "5", "6", "7", "8"],
+            rows: [
+              ["год 1", "7", "12", "16", "24", "28", "31", "33", "34"],
+              ["год 2", "4", "8", "13", "17", "20", "22", "23", "24"],
+              ["год 3", "5", "9", "14", "18", "21", "23", "24", "25"]
+            ],
+            ask: "Найдите распределение с наибольшим доходом."
+          },
+          {
+            pill: "10", theme: "Стартапы", title: "Пилот, который не берут",
+            text: "8 млн делят между тремя проектами, каждому хотя бы 1 млн. Третий проект не принимает транш в 1 млн: минимальный чек у него 2 млн. Цифра в клетке «1» для третьего проекта в таблице есть, но такой платёж фонд провести не может. Доход — сумма трёх проектов.",
+            head: ["млн", "1", "2", "3", "4", "5", "6"],
+            rows: [
+              ["проект 1", "10", "16", "21", "24", "26", "27"],
+              ["проект 2", "9", "15", "20", "23", "25", "26"],
+              ["проект 3", "18", "6", "11", "15", "18", "20"]
+            ],
+            ask: "Найдите допустимое вложение с наибольшим доходом."
+          },
+          {
+            pill: "11", theme: "Стартапы", title: "Запас на третий год",
+            text: "12 млн распределяют на три года, в каждый год хотя бы 1 млн. Фонд закрывает третий год, только если на него оставлено не меньше 4 млн. Доход — сумма трёх лет.",
+            head: ["млн", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"],
+            rows: [
+              ["год 1", "8", "14", "19", "23", "26", "28", "30", "31", "32", "33"],
+              ["год 2", "7", "13", "18", "22", "25", "27", "29", "30", "31", "32"],
+              ["год 3", "20", "24", "27", "29", "31", "33", "34", "35", "36", "37"]
+            ],
+            ask: "Найдите распределение с наибольшим доходом."
+          },
+          {
+            pill: "12", theme: "Стартапы", title: "Не больше половины",
+            text: "Инвестор делит 6 млн между тремя стартапами. Каждый получает хотя бы 1 млн. Одному проекту нельзя отдать больше половины всего капитала. Доход — сумма трёх строк.",
+            head: ["млн", "1", "2", "3", "4"],
+            rows: [
+              ["А", "9", "14", "18", "19"],
+              ["Б", "6", "10", "15", "21"],
+              ["В", "7", "12", "16", "17"]
+            ],
+            ask: "Найдите вложение с наибольшим доходом."
+          },
+          {
+            pill: "13", theme: "Стартапы", title: "Чётный транш",
+            text: "11 млн делят на три раунда, в каждый хотя бы 1 млн. Второй раунд по уставу проводится только чётным траншем: 2, 4, 6 или 8 млн. Нечётное число миллионов во второй раунд не переводят, даже если такая клетка в таблице есть. Доход — сумма трёх раундов.",
+            head: ["млн", "1", "2", "3", "4", "5", "6", "7", "8", "9"],
+            rows: [
+              ["раунд 1", "5", "9", "12", "16", "18", "20", "21", "22", "23"],
+              ["раунд 2", "4", "8", "22", "20", "21", "24", "27", "30", "31"],
+              ["раунд 3", "4", "8", "13", "17", "19", "21", "22", "23", "24"]
+            ],
+            ask: "Найдите допустимое распределение с наибольшим доходом."
+          },
+          {
+            pill: "14", theme: "Стартапы", title: "Нечётный первый чек",
+            text: "9 млн делят на три направления, каждому хотя бы 1 млн. Первое направление принимает только нечётную сумму: 1, 3, 5 или 7 млн. Чётный чек бухгалтерия первого направления не проводит. Доход — сумма трёх направлений.",
+            head: ["млн", "1", "2", "3", "4", "5", "6", "7"],
+            rows: [
+              ["первое", "6", "20", "14", "22", "18", "24", "22"],
+              ["второе", "4", "9", "13", "16", "18", "19", "20"],
+              ["третье", "5", "8", "14", "17", "19", "21", "22"]
+            ],
+            ask: "Найдите допустимое распределение с наибольшим доходом."
+          },
+          {
+            pill: "15", theme: "Цеха", title: "Три объекта, минимум по двое",
+            text: "10 рабочих распределяют по трём объектам. По правилу площадки на объект выходят не меньше чем вдвоём: один человек смену не открывает. Выработка — сумма трёх объектов.",
+            head: ["человек", "1", "2", "3", "4", "5", "6", "7", "8", "9"],
+            rows: [
+              ["объект 1", "24", "14", "18", "21", "23", "25", "26", "27", "28"],
+              ["объект 2", "6", "12", "17", "20", "22", "24", "25", "26", "27"],
+              ["объект 3", "5", "11", "16", "20", "23", "25", "26", "27", "28"]
+            ],
+            ask: "Найдите расстановку с наибольшей выработкой."
+          },
+          {
+            pill: "16", theme: "Цеха", title: "Третий цех тесный",
+            text: "8 станков делят между тремя цехами, каждому цеху хотя бы один. В третьем цехе по площади стоят не больше трёх станков. Выпуск — сумма трёх цехов.",
+            head: ["станков", "1", "2", "3", "4", "5", "6"],
+            rows: [
+              ["цех 1", "5", "9", "12", "14", "15", "16"],
+              ["цех 2", "4", "8", "11", "15", "17", "18"],
+              ["цех 3", "6", "10", "13", "22", "26", "28"]
+            ],
+            ask: "Найдите расстановку с наибольшим выпуском."
+          },
+          {
+            pill: "17", theme: "Цеха", title: "Заказ на первую линию",
+            text: "12 смен распределяют по трём линиям, на каждую хотя бы одну смену. На первую линию уже есть заказ: меньше 4 смен её не запускают. Выпуск — сумма трёх линий.",
+            head: ["смен", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11"],
+            rows: [
+              ["линия 1", "22", "28", "30", "18", "21", "23", "25", "26", "27", "28", "29"],
+              ["линия 2", "6", "11", "15", "18", "20", "22", "23", "24", "25", "25", "26"],
+              ["линия 3", "5", "10", "14", "17", "19", "21", "22", "23", "24", "24", "25"]
+            ],
+            ask: "Найдите распределение с наибольшим выпуском."
+          },
+          {
+            pill: "18", theme: "Цеха", title: "Второй цех до четырёх партий",
+            text: "9 партий сырья делят между тремя цехами, каждому хотя бы одну. Второй цех принимает не больше четырёх партий за смену. Выпуск — сумма трёх цехов.",
+            head: ["партий", "1", "2", "3", "4", "5", "6", "7"],
+            rows: [
+              ["цех 1", "4", "8", "11", "13", "14", "15", "16"],
+              ["цех 2", "7", "12", "16", "19", "28", "32", "35"],
+              ["цех 3", "5", "9", "14", "17", "19", "20", "21"]
+            ],
+            ask: "Найдите распределение с наибольшим выпуском."
+          },
+          {
+            pill: "19", theme: "Цеха", title: "Общежитие на первых двух",
+            text: "10 бригад распределяют по трём участкам, на каждый хотя бы одну. Жильё есть только у первых двух участков, и вместе они вмещают не больше пяти бригад. Выработка — сумма трёх участков.",
+            head: ["бригад", "1", "2", "3", "4", "5", "6", "7", "8"],
+            rows: [
+              ["участок 1", "8", "14", "18", "21", "23", "24", "25", "26"],
+              ["участок 2", "7", "13", "17", "20", "22", "23", "24", "25"],
+              ["участок 3", "3", "6", "9", "12", "16", "20", "23", "26"]
+            ],
+            ask: "Найдите расстановку с наибольшей выработкой."
+          },
+          {
+            pill: "20", theme: "Цеха", title: "Смену короче двух часов не открывают",
+            text: "10 часов наладки делят между тремя станками. Паспортный выпуск при одном часе в таблице указан, но цех смену короче двух часов не открывает: один час на любом станке назначить нельзя. Выпуск — сумма трёх станков по допустимым клеткам.",
+            head: ["часов", "1", "2", "3", "4", "5", "6", "7", "8"],
+            rows: [
+              ["станок 1", "22", "11", "16", "19", "21", "22", "23", "24"],
+              ["станок 2", "18", "10", "17", "21", "24", "26", "27", "28"],
+              ["станок 3", "16", "9", "15", "20", "24", "27", "29", "30"]
+            ],
+            ask: "Найдите распределение с наибольшим выпуском."
+          }
+        ];
+        function board(v) {
+          let h = "<h3 class='var-title'>" + v.theme + " · " + v.pill + ". " + v.title + "</h3>";
+          h += "<p>" + v.text + "</p>";
+          h += "<table class='sx'><thead><tr>";
+          v.head.forEach(function (c) { h += "<th>" + c + "</th>"; });
+          h += "</tr></thead><tbody>";
+          v.rows.forEach(function (row) {
+            h += "<tr>";
+            row.forEach(function (c, j) {
+              h += "<td" + (j === 0 ? " class='lab'" : "") + ">" + c + "</td>";
+            });
+            h += "</tr>";
+          });
+          h += "</tbody></table><p><b>" + v.ask + "</b></p>";
+          return h;
+        }
+        bindStepper(variants, function (v) {
+          document.getElementById("var-board").innerHTML = board(v);
+        });
+        const input = document.getElementById("stream-n");
+        const out = document.getElementById("stream-out");
+        function applyStream() {
+          const raw = parseInt(input.value, 10);
+          if (!raw || raw < 1) {
+            out.textContent = "";
+            return;
+          }
+          const v = raw % 20 || 20;
+          out.textContent = "Вариант " + v;
+          const btn = document.querySelector("#step-pills button[data-k='" + (v - 1) + "']");
+          if (btn) btn.click();
+        }
+        input.addEventListener("input", applyStream);
+      }
+    }
+  ];
+
+  let i = 0;
+  const main = document.getElementById("main");
+  const toc = document.getElementById("toc");
+  const phase = document.getElementById("phase");
+  const counter = document.getElementById("counter");
+  const bar = document.getElementById("bar");
+  const prev = document.getElementById("prev");
+  const next = document.getElementById("next");
+
+  toc.innerHTML = "<h2>Ход практики</h2>" + slides.map(function (s, k) {
+    return "<button type='button' data-i='" + k + "'><span class='n'>" + (k + 1) + "</span>" + s.toc + "</button>";
+  }).join("");
+
+  function render() {
+    const s = slides[i];
+    phase.textContent = s.phase;
+    counter.textContent = (i + 1) + " / " + slides.length;
+    bar.style.width = ((i + 1) / slides.length * 100) + "%";
+    prev.disabled = i === 0;
+    next.disabled = i === slides.length - 1;
+    toc.querySelectorAll("button").forEach(function (b, k) { b.classList.toggle("active", k === i); });
+    main.innerHTML = "<div class='slide" + (s.id === "hw" ? " hw-slide" : "") + "'><h1>" + s.title + "</h1><p class='lead'>" + s.lead + "</p>" + s.html + "</div>";
+    if (s.onEnter) s.onEnter();
+    const active = toc.querySelector("button.active");
+    if (active) active.scrollIntoView({ block: "nearest" });
+    main.scrollTop = 0;
+  }
+
+  prev.onclick = function () { if (i > 0) { i--; render(); } };
+  next.onclick = function () { if (i < slides.length - 1) { i++; render(); } };
+  toc.onclick = function (e) {
+    const b = e.target.closest("button[data-i]");
+    if (!b) return;
+    i = +b.getAttribute("data-i");
+    render();
+  };
+  document.addEventListener("keydown", function (e) {
+    if (e.target.closest("input, textarea")) return;
+    const rbNext = document.getElementById("rb-next");
+    const rbPrev = document.getElementById("rb-prev");
+    if ((e.key === "ArrowRight" || e.key === "PageDown" || e.key === " ") && rbNext) {
+      e.preventDefault();
+      if (!rbNext.disabled) { rbNext.click(); return; }
+      if (i < slides.length - 1) { i++; render(); }
+      return;
+    }
+    if ((e.key === "ArrowLeft" || e.key === "PageUp") && rbPrev) {
+      e.preventDefault();
+      if (!rbPrev.disabled) { rbPrev.click(); return; }
+      if (i > 0) { i--; render(); }
+      return;
+    }
+    if (e.key === "ArrowRight" || e.key === "PageDown" || e.key === " ") {
+      e.preventDefault();
+      if (i < slides.length - 1) { i++; render(); }
+    }
+    if (e.key === "ArrowLeft" || e.key === "PageUp") {
+      e.preventDefault();
+      if (i > 0) { i--; render(); }
+    }
+  });
+
+  const start = new URLSearchParams(location.search).get("s");
+  if (start) {
+    const n = parseInt(start, 10);
+    if (!isNaN(n)) i = Math.max(0, Math.min(slides.length - 1, n - 1));
+  }
+  render();
+})();
+</script>
+</body>
+</html>

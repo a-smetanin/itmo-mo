@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Практика 4 · варианты</title>
+  <style>
+    :root { --ink: #1c1916; --muted: #6b645b; --line: #d9d0c3; --paper: #fffdf8; --bg: #f4efe6; --accent: #1f4d63; }
+    body { margin: 0; background: var(--bg); color: var(--ink); font: 17px/1.45 "Segoe UI", Georgia, serif; }
+    main { max-width: 820px; margin: 0 auto; padding: 32px 20px 64px; }
+    h1 { font-size: 28px; margin: 0 0 8px; }
+    h2 { font-size: 22px; margin: 36px 0 8px; color: var(--accent); }
+    h3 { font-size: 18px; margin: 28px 0 8px; }
+    p { margin: 0 0 10px; }
+    .lead { color: var(--muted); }
+    table { border-collapse: collapse; width: 100%; background: var(--paper); margin: 8px 0 4px; font-variant-numeric: tabular-nums; }
+    th, td { border: 1px solid var(--line); padding: 4px 8px; text-align: center; }
+    th { background: #f3eee4; font-size: 13px; }
+    td.lab { text-align: left; font-weight: 650; }
+    .ask { font-weight: 650; }
+    article { background: var(--paper); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px 8px; margin: 14px 0; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>Варианты к практике 4</h1>
+  <p class="lead">Номер варианта: номер в потоке по модулю 20. Остаток 0 означает вариант 20. Для 32 это 12. Задача того же вида, что десять курсов на трёх факультетах: целое количество делится на три части, баллы или затраты лежат в таблице. Ограничение написано в тексте и в таблицу отдельной строкой не вынесено. Его нужно прочитать и учесть.</p>
+  <p>Ответ оформите четырьмя строками: значение, план, единственный ли он, проверка. Если лучших планов несколько, запишите каждый. Вариант 3 — на минимум, остальные — на максимум.</p>
+
+  <h2>Маршруты</h2>
+
+  <article>
+    <h3>1. Дорога к морю</h3>
+    <p>Из A в B ведут три участка: перевал, долина и берег. На дорогу есть 9 суток, их все нужно распределить. Участок, на котором не провели ни одних суток, считается непройденным, так маршрут не засчитывают. На берегу сезон короткий: больше 4 суток там быть нельзя. Интерес поездки — сумма оценок трёх участков.</p>
+    <table>
+      <thead><tr><th>суток</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th></tr></thead>
+      <tbody>
+        <tr><td class="lab">перевал</td><td>4</td><td>6</td><td>9</td><td>11</td><td>12</td><td>13</td><td>14</td></tr>
+        <tr><td class="lab">долина</td><td>5</td><td>9</td><td>12</td><td>14</td><td>15</td><td>16</td><td>16</td></tr>
+        <tr><td class="lab">берег</td><td>7</td><td>10</td><td>14</td><td>20</td><td>28</td><td>30</td><td>31</td></tr>
+      </tbody>
+    </table>
+    <p class="ask">Найдите распределение с наибольшим интересом.</p>
+  </article>
+
+  <article>
+    <h3>2. Три города по пути</h3>
+    <p>Из A в B заезжают в три города по порядку. На остановки есть 8 дней, все их проводят в этих городах. В каждом городе ночуют хотя бы одну ночь. В первом городе гостиница держит номер только до трёх ночей. Польза командировки складывается из оценок городов.</p>
+    <table>
+      <thead><tr><th>дней</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th></tr></thead>
+      <tbody>
+        <tr><td class="lab">первый</td><td>6</td><td>11</td><td>15</td><td>22</td><td>26</td><td>29</td></tr>
+        <tr><td class="lab">второй</td><td>4</td><td>8</td><td>13</td><td>16</td><td>18</td><td>19</td></tr>
+        <tr><td class="lab">третий</td><td>5</td><td>9</td><td>12</td><td>16</td><td>19</td><td>21</td></tr>
+      </tbody>
+    </table>
+    <p class="ask">Найдите распределение с наибольшей пользой.</p>
+  </article>
+
+  <article>
+    <h3>3. Три склада</h3>
+    <p>Грузовик везёт 10 тонн из A в B и разгружает их на трёх складах по дороге. Каждый склад принимает хотя бы одну тонну, пустой склад рейс не закрывает. Третий склад по договору берёт не больше 5 тонн. В таблице — затраты на хранение, их нужно сделать как можно меньше.</p>
+    <table>
+      <thead><tr><th>тонн</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th><th>8</th></tr></thead>
+      <tbody>
+        <tr><td class="lab">склад 1</td><td>8</td><td>7</td><td>6</td><td>6</td><td>5</td><td>5</td><td>5</td><td>5</td></tr>
+        <tr><td class="lab">склад 2</td><td>8</td><td>7</td><td>6</td><td>6</td><td>5</td><td>5</td><td>5</td><td>5</td></tr>
+        <tr><td class="lab">склад 3</td><td>6</td><td>5</td><td>4</td><td>3</td><td>2</td><td>0</td><td>0</td><td>0</td></tr>
+      </tbody>
+    </table>
+    <p class="ask">Найдите разгрузку с наименьшими затратами.</p>
+  </article>
+
+  <article>
+    <h3>4. Три края</h3>
+    <p>Турист делит 11 ночей между тремя краями. Маршрут засчитывают, только если в каждом крае он ночует хотя бы две ночи: одна ночь для организаторов не считается посещением. Оценка поездки — сумма оценок краёв.</p>
+    <table>
+      <thead><tr><th>ночей</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th><th>8</th><th>9</th></tr></thead>
+      <tbody>
+        <tr><td class="lab">север</td><td>30</td><td>18</td><td>22</td><td>25</td><td>27</td><td>28</td><td>29</td><td>30</td><td>31</td></tr>
+        <tr><td class="lab">центр</td><td>6</td><td>12</td><td>16</td><td>19</td><td>21</td><td>23</td><td>24</td><td>25</td><td>26</td></tr>
+        <tr><td class="lab">юг</td><td>5</td><td>11</td><td>15</td><td>18</td><td>22</td><td>25</td><td>27</td><td>28</td><td>29</td></tr>
+      </tbody>
+    </table>
+    <p class="ask">Найдите распределение с наибольшей оценкой.</p>
+  </article>
+
+  <article>
+    <h3>5. Рейсы в три пункта</h3>
+    <p>За неделю нужно сделать 7 рейсов в три пункта по трассе A–B. В каждый пункт — хотя бы один рейс. В начальный пункт, по правилу диспетчерской, число рейсов чётное. Эффект недели — сумма эффектов трёх пунктов.</p>
+    <table>
+      <thead><tr><th>рейсов</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th></tr></thead>
+      <tbody>
+        <tr><td class="lab">начальный</td><td>5</td><td>9</td><td>22</td><td>16</td><td>18</td><td>20</td></tr>
+        <tr><td class="lab">промежуточный</td><td>4</td><td>9</td><td>13</td><td>15</td><td>16</td><td></td></tr>
+        <tr><td class="lab">конечный</td><td>6</td><td>10</td><td>14</td><td>17</td><td>19</td><td></td></tr>
+      </tbody>
+    </table>
+    <p class="ask">Найдите распределение с наибольшим эффектом. Пустая клетка значит, что столько рейсов пункт не принимает.</p>
+  </article>
+
+  <article>
+    <h3>6. Пропуск от трёх дней</h3>
+    <p>Из A в B заезжают в три города по порядку и проводят там все 9 дней командировки. В каждом городе хотя бы один день. В средний город пропуск дают только от трёх дней: на одни и на двое суток его не оформляют, хотя эти клетки в таблице заполнены. Польза — сумма оценок трёх городов.</p>
+    <table>
+      <thead><tr><th>дней</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th></tr></thead>
+      <tbody>
+        <tr><td class="lab">первый</td><td>6</td><td>11</td><td>15</td><td>18</td><td>20</td><td>21</td><td>22</td></tr>
+        <tr><td class="lab">средний</td><td>32</td><td>28</td><td>14</td><td>18</td><td>21</td><td>23</td><td>24</td></tr>
+        <tr><td class="lab">третий</td><td>5</td><td>10</td><td>14</td><td>17</td><td>19</td><td>20</td><td>21</td></tr>
+      </tbody>
+    </table>
+    <p class="ask">Найдите распределение с наибольшей пользой.</p>
+  </article>
+
+  <article>
+    <h3>7. Горный посёлок</h3>
+    <p>Экспедиция делит 10 суток между долиной, горным посёлком и базой. В каждом месте проводят хотя бы сутки. В горный посёлок меньше чем на двое суток не заезжают: за одни сутки группа не успевает подняться и спуститься, такие сутки организатор не засчитывает. Оценка — сумма трёх строк.</p>
+    <table>
+      <thead><tr><th>суток</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th><th>8</th></tr></thead>
+      <tbody>
+        <tr><td class="lab">долина</td><td>5</td><td>9</td><td>13</td><td>16</td><td>18</td><td>19</td><td>20</td><td>21</td></tr>
+        <tr><td class="lab">посёлок</td><td>28</td><td>14</td><td>18</td><td>21</td><td>23</td><td>24</td><td>25</td><td>26</td></tr>
+        <tr><td class="lab">база</td><td>6</td><td>11</td><td>15</td><td>18</td><td>20</td><td>21</td><td>22</td><td>23</td></tr>
+      </tbody>
+    </table>
+    <p class="ask">Найдите распределение с наибольшей оценкой.</p>
+  </article>
+
+  <h2>Стартапы</h2>
+
+  <article>
+    <h3>8. Три раунда, второй короткий</h3>
+    <p>Фонд вкладывает 9 млн в три стартапа. Каждый получает хотя бы 1 млн, иначе доля не оформляется. Второй стартап по договору раунда принимает не больше 4 млн. Доход — сумма трёх строк, в миллионах.</p>
+    <table>
+      <thead><tr><th>млн</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th></tr></thead>
+      <tbody>
+        <tr><td class="lab">первый</td><td>5</td><td>9</td><td>12</td><td>14</td><td>15</td><td>16</td><td>17</td></tr>
+        <tr><td class="lab">второй</td><td>8</td><td>14</td><td>18</td><td>21</td><td>30</td><td>34</td><td>36</td></tr>
+        <tr><td class="lab">третий</td><td>4</td><td>7</td><td>11</td><td>16</td><td>18</td><td>19</td><td>20</td></tr>
+      </tbody>
+    </table>
+    <p class="ask">Найдите вложение с наибольшим доходом.</p>
+  </article>
+
+  <article>
+    <h3>9. Три года одного фонда</h3>
+    <p>10 млн распределяют по трём годам. В каждый год уходит хотя бы 1 млн. В первый год команды ещё нет, поэтому туда нельзя отправить больше 3 млн. Доход фонда — сумма доходов трёх лет.</p>
+    <table>
+      <thead><tr><th>млн</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th><th>8</th></tr></thead>
+      <tbody>
+        <tr><td class="lab">год 1</td><td>7</td><td>12</td><td>16</td><td>24</td><td>28</td><td>31</td><td>33</td><td>34</td></tr>
+        <tr><td class="lab">год 2</td><td>4</td><td>8</td><td>13</td><td>17</td><td>20</td><td>22</td><td>23</td><td>24</td></tr>
+        <tr><td class="lab">год 3</td><td>5</td><td>9</td><td>14</td><td>18</td><td>21</td><td>23</td><td>24</td><td>25</td></tr>
+      </tbody>
+    </table>
+    <p class="ask">Найдите распределение с наибольшим доходом.</p>
+  </article>
+
+  <article>
+    <h3>10. Пилот, который не берут</h3>
+    <p>8 млн делят между тремя проектами, каждому хотя бы 1 млн. Третий проект не принимает транш в 1 млн: минимальный чек у него 2 млн. Цифра в клетке «1» для третьего проекта в таблице есть, но такой платёж фонд провести не может. Доход — сумма трёх проектов.</p>
+    <table>
+      <thead><tr><th>млн</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th></tr></thead>
+      <tbody>
+        <tr><td class="lab">проект 1</td><td>10</td><td>16</td><td>21</td><td>24</td><td>26</td><td>27</td></tr>
+        <tr><td class="lab">проект 2</td><td>9</td><td>15</td><td>20</td><td>23</td><td>25</td><td>26</td></tr>
+        <tr><td class="lab">проект 3</td><td>18</td><td>6</td><td>11</td><td>15</td><td>18</td><td>20</td></tr>
+      </tbody>
+    </table>
+    <p class="ask">Найдите допустимое вложение с наибольшим доходом.</p>
+  </article>
+
+  <article>
+    <h3>11. Запас на третий год</h3>
+    <p>12 млн распределяют на три года, в каждый год хотя бы 1 млн. Фонд закрывает третий год, только если на него оставлено не меньше 4 млн. Доход — сумма трёх лет.</p>
+    <table>
+      <thead><tr><th>млн</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th><th>8</th><th>9</th><th>10</th></tr></thead>
+      <tbody>
+        <tr><td class="lab">год 1</td><td>8</td><td>14</td><td>19</td><td>23</td><td>26</td><td>28</td><td>30</td><td>31</td><td>32</td><td>33</td></tr>
+        <tr><td class="lab">год 2</td><td>7</td><td>13</td><td>18</td><td>22</td><td>25</td><td>27</td><td>29</td><td>30</td><td>31</td><td>32</td></tr>
+        <tr><td class="lab">год 3</td><td>20</td><td>24</td><td>27</td><td>29</td><td>31</td><td>33</td><td>34</td><td>35</td><td>36</td><td>37</td></tr>
+      </tbody>
+    </table>
+    <p class="ask">Найдите распределение с наибольшим доходом.</p>
+  </article>
+
+  <article>
+    <h3>12. Не больше половины</h3>
+    <p>Инвестор делит 6 млн между тремя стартапами. Каждый получает хотя бы 1 млн. Одному проекту нельзя отдать больше половины всего капитала. Доход — сумма трёх строк.</p>
+    <table>
+      <thead><tr><th>млн</th><th>1</th><th>2</th><th>3</th><th>4</th></tr></thead>
+      <tbody>
+        <tr><td class="lab">А</td><td>9</td><td>14</td><td>18</td><td>19</td></tr>
+        <tr><td class="lab">Б</td><td>6</td><td>10</td><td>15</td><td>21</td></tr>
+        <tr><td class="lab">В</td><td>7</td><td>12</td><td>16</td><td>17</td></tr>
+      </tbody>
+    </table>
+    <p class="ask">Найдите вложение с наибольшим доходом.</p>
+  </article>
+
+  <article>
+    <h3>13. Чётный транш</h3>
+    <p>11 млн делят на три раунда, в каждый хотя бы 1 млн. Второй раунд по уставу проводится только чётным траншем: 2, 4, 6 или 8 млн. Нечётное число миллионов во второй раунд не переводят, даже если такая клетка в таблице есть. Доход — сумма трёх раундов.</p>
+    <table>
+      <thead><tr><th>млн</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th><th>8</th><th>9</th></tr></thead>
+      <tbody>
+        <tr><td class="lab">раунд 1</td><td>5</td><td>9</td><td>12</td><td>16</td><td>18</td><td>20</td><td>21</td><td>22</td><td>23</td></tr>
+        <tr><td class="lab">раунд 2</td><td>4</td><td>8</td><td>22</td><td>20</td><td>21</td><td>24</td><td>27</td><td>30</td><td>31</td></tr>
+        <tr><td class="lab">раунд 3</td><td>4</td><td>8</td><td>13</td><td>17</td><td>19</td><td>21</td><td>22</td><td>23</td><td>24</td></tr>
+      </tbody>
+    </table>
+    <p class="ask">Найдите допустимое распределение с наибольшим доходом.</p>
+  </article>
+
+  <article>
+    <h3>14. Нечётный первый чек</h3>
+    <p>9 млн делят на три направления, каждому хотя бы 1 млн. Первое направление принимает только нечётную сумму: 1, 3, 5 или 7 млн. Чётный чек бухгалтерия первого направления не проводит. Доход — сумма трёх направлений.</p>
+    <table>
+      <thead><tr><th>млн</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th></tr></thead>
+      <tbody>
+        <tr><td class="lab">первое</td><td>6</td><td>20</td><td>14</td><td>22</td><td>18</td><td>24</td><td>22</td></tr>
+        <tr><td class="lab">второе</td><td>4</td><td>9</td><td>13</td><td>16</td><td>18</td><td>19</td><td>20</td></tr>
+        <tr><td class="lab">третье</td><td>5</td><td>8</td><td>14</td><td>17</td><td>19</td><td>21</td><td>22</td></tr>
+      </tbody>
+    </table>
+    <p class="ask">Найдите допустимое распределение с наибольшим доходом.</p>
+  </article>
+
+  <h2>Цеха</h2>
+
+  <article>
+    <h3>15. Три объекта, минимум по двое</h3>
+    <p>10 рабочих распределяют по трём объектам. По правилу площадки на объект выходят не меньше чем вдвоём: один человек смену не открывает. Выработка — сумма трёх объектов.</p>
+    <table>
+      <thead><tr><th>человек</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th><th>8</th><th>9</th></tr></thead>
+      <tbody>
+        <tr><td class="lab">объект 1</td><td>24</td><td>14</td><td>18</td><td>21</td><td>23</td><td>25</td><td>26</td><td>27</td><td>28</td></tr>
+        <tr><td class="lab">объект 2</td><td>6</td><td>12</td><td>17</td><td>20</td><td>22</td><td>24</td><td>25</td><td>26</td><td>27</td></tr>
+        <tr><td class="lab">объект 3</td><td>5</td><td>11</td><td>16</td><td>20</td><td>23</td><td>25</td><td>26</td><td>27</td><td>28</td></tr>
+      </tbody>
+    </table>
+    <p class="ask">Найдите расстановку с наибольшей выработкой.</p>
+  </article>
+
+  <article>
+    <h3>16. Третий цех тесный</h3>
+    <p>8 станков делят между тремя цехами, каждому цеху хотя бы один. В третьем цехе по площади стоят не больше трёх станков. Выпуск — сумма трёх цехов.</p>
+    <table>
+      <thead><tr><th>станков</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th></tr></thead>
+      <tbody>
+        <tr><td class="lab">цех 1</td><td>5</td><td>9</td><td>12</td><td>14</td><td>15</td><td>16</td></tr>
+        <tr><td class="lab">цех 2</td><td>4</td><td>8</td><td>11</td><td>15</td><td>17</td><td>18</td></tr>
+        <tr><td class="lab">цех 3</td><td>6</td><td>10</td><td>13</td><td>22</td><td>26</td><td>28</td></tr>
+      </tbody>
+    </table>
+    <p class="ask">Найдите расстановку с наибольшим выпуском.</p>
+  </article>
+
+  <article>
+    <h3>17. Заказ на первую линию</h3>
+    <p>12 смен распределяют по трём линиям, на каждую хотя бы одну смену. На первую линию уже есть заказ: меньше 4 смен её не запускают. Выпуск — сумма трёх линий.</p>
+    <table>
+      <thead><tr><th>смен</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th><th>8</th><th>9</th><th>10</th><th>11</th></tr></thead>
+      <tbody>
+        <tr><td class="lab">линия 1</td><td>22</td><td>28</td><td>30</td><td>18</td><td>21</td><td>23</td><td>25</td><td>26</td><td>27</td><td>28</td><td>29</td></tr>
+        <tr><td class="lab">линия 2</td><td>6</td><td>11</td><td>15</td><td>18</td><td>20</td><td>22</td><td>23</td><td>24</td><td>25</td><td>25</td><td>26</td></tr>
+        <tr><td class="lab">линия 3</td><td>5</td><td>10</td><td>14</td><td>17</td><td>19</td><td>21</td><td>22</td><td>23</td><td>24</td><td>24</td><td>25</td></tr>
+      </tbody>
+    </table>
+    <p class="ask">Найдите распределение с наибольшим выпуском.</p>
+  </article>
+
+  <article>
+    <h3>18. Второй цех до четырёх партий</h3>
+    <p>9 партий сырья делят между тремя цехами, каждому хотя бы одну. Второй цех принимает не больше четырёх партий за смену. Выпуск — сумма трёх цехов.</p>
+    <table>
+      <thead><tr><th>партий</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th></tr></thead>
+      <tbody>
+        <tr><td class="lab">цех 1</td><td>4</td><td>8</td><td>11</td><td>13</td><td>14</td><td>15</td><td>16</td></tr>
+        <tr><td class="lab">цех 2</td><td>7</td><td>12</td><td>16</td><td>19</td><td>28</td><td>32</td><td>35</td></tr>
+        <tr><td class="lab">цех 3</td><td>5</td><td>9</td><td>14</td><td>17</td><td>19</td><td>20</td><td>21</td></tr>
+      </tbody>
+    </table>
+    <p class="ask">Найдите распределение с наибольшим выпуском.</p>
+  </article>
+
+  <article>
+    <h3>19. Общежитие на первых двух</h3>
+    <p>10 бригад распределяют по трём участкам, на каждый хотя бы одну. Жильё есть только у первых двух участков, и вместе они вмещают не больше пяти бригад. Выработка — сумма трёх участков.</p>
+    <table>
+      <thead><tr><th>бригад</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th><th>8</th></tr></thead>
+      <tbody>
+        <tr><td class="lab">участок 1</td><td>8</td><td>14</td><td>18</td><td>21</td><td>23</td><td>24</td><td>25</td><td>26</td></tr>
+        <tr><td class="lab">участок 2</td><td>7</td><td>13</td><td>17</td><td>20</td><td>22</td><td>23</td><td>24</td><td>25</td></tr>
+        <tr><td class="lab">участок 3</td><td>3</td><td>6</td><td>9</td><td>12</td><td>16</td><td>20</td><td>23</td><td>26</td></tr>
+      </tbody>
+    </table>
+    <p class="ask">Найдите расстановку с наибольшей выработкой.</p>
+  </article>
+
+  <article>
+    <h3>20. Смену короче двух часов не открывают</h3>
+    <p>10 часов наладки делят между тремя станками. Паспортный выпуск при одном часе в таблице указан, но цех смену короче двух часов не открывает: один час на любом станке назначить нельзя. Выпуск — сумма трёх станков по допустимым клеткам.</p>
+    <table>
+      <thead><tr><th>часов</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th><th>8</th></tr></thead>
+      <tbody>
+        <tr><td class="lab">станок 1</td><td>22</td><td>11</td><td>16</td><td>19</td><td>21</td><td>22</td><td>23</td><td>24</td></tr>
+        <tr><td class="lab">станок 2</td><td>18</td><td>10</td><td>17</td><td>21</td><td>24</td><td>26</td><td>27</td><td>28</td></tr>
+        <tr><td class="lab">станок 3</td><td>16</td><td>9</td><td>15</td><td>20</td><td>24</td><td>27</td><td>29</td><td>30</td></tr>
+      </tbody>
+    </table>
+    <p class="ask">Найдите распределение с наибольшим выпуском.</p>
+  </article>
+</main>
+</body>
+</html>
